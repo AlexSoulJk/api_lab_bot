@@ -42,30 +42,6 @@ class Database:
             session.add(model)
             session.commit()
 
-    def formed_post(self, id_place):
-        res = {}
-        res["place_name"] = self.sql_query(query=select(models.Place).where(models.Place.id == id_place))
-        res["name_of_writer"] = self.sql_query(query=select(models.User.name).where(
-            models.User.id == res["place_name"].id_writer))
-        result = self.sql_query(query=select(models.Category.name_of_category).select_from(
-                join(
-                    models.Place_Category,
-                    models.Category,
-                    models.Place_Category.id_category == models.Category.id
-                )
-            ).where(
-            models.Place_Category.id_place == id_place), is_single=False)
-        tags = ""
-        for item in result:
-            tags += f"#{item[0].replace(' ', '')} "
-        res["tags"] = tags
-        res["description"] = self.sql_query(query=select(models.Description.text).where(
-            models.Description.id_places == id_place))
-        res["photo"] = self.sql_query(query=select(models.Place_photo.photo_path).where(
-            models.Place_photo.id_place == id_place))
-        res["website"] = self.sql_query(query=select(models.Place_Info.website_path).where(
-            models.Place_Info.id_place == id_place))
-        return res
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
