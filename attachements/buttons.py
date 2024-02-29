@@ -1,4 +1,4 @@
-from filters.callback import SkipCallback, ConfirmCallback
+from filters.callback import SkipCallback, ConfirmCallback, RemindTypeCallBack
 
 # ---------------------------------------------------------------------------------
 # Buttons
@@ -9,4 +9,6 @@ CONFIRMING = [("Да", ConfirmCallback(confirm=True)),
 # SKIP
 SKIP = [("Пропустить", SkipCallback(skip=True)),
         ("Остаться", SkipCallback(skip=False))]
-
+# ADD REMIND.
+# TYPE REMIND
+TYPE_REMIND = [("Периодическое", RemindTypeCallBack(type="periodic")), ("Обычное", RemindTypeCallBack(type="common"))]

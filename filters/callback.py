@@ -6,3 +6,6 @@ class SkipCallback(CallbackData, prefix='skip'):
 
 class ConfirmCallback(CallbackData, prefix='confirm'):
     confirm: bool = False
+
+class RemindTypeCallBack(CallbackData, prefix='remind_type'):
+    type: str = "common"
