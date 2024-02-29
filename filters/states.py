@@ -13,3 +13,6 @@ class AddRemind(StatesGroup):
     add_pic = State()
     add_category = State()
     try_add_category = State()
+
+class CalendaryS(StatesGroup):
+    start = State()

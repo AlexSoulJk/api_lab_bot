@@ -32,21 +32,6 @@ async def input_name(message: Message, state: FSMContext):
     await state.set_state(AddRemind.add_description)
 
 
-@router.message(AddRemind.add_description)
-async def input_description(message: Message, state: FSMContext):
-    await message.answer(msg.INPUT_REMIND_DEADLINE)
-    await state.update_data(remind_description=message.text)
-    await state.set_state(AddRemind.add_deadline)
-
-
-@router.message(AddRemind.add_deadline)
-async def input_description(message: Message, state: FSMContext):
-    await message.answer(msg.TRY_INPUT_REMIND_FILE,
-                         reply_markup=kb.get_keyboard(btn.CONFIRMING))
-    await state.update_data(remind_deadline=message.text)
-    await state.set_state(AddRemind.try_add_file)
-
-
 @router.callback_query(AddRemind.try_add_file,
                        ConfirmCallback.filter(F.confirm == True))
 async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
