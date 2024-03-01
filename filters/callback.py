@@ -1,11 +1,43 @@
 from dataclasses import dataclass
 from aiogram.filters.callback_data import CallbackData
 
+
 class SkipCallback(CallbackData, prefix='skip'):
     skip: bool = False
+
 
 class ConfirmCallback(CallbackData, prefix='confirm'):
     confirm: bool = False
 
+
 class RemindTypeCallBack(CallbackData, prefix='remind_type'):
     type: str = "common"
+
+
+class ButLeftRightCallBack(CallbackData, prefix='left_right_but'):
+    action: str
+    new_chunk: int
+
+
+class RemindListCallBack(CallbackData, prefix='remind_list'):
+    remind_id: int
+
+
+class ShowFilesCallBack(CallbackData, prefix="show_files_btn"):
+    action: str = "show"
+
+
+class FilesListCallBack(CallbackData, prefix="files"):
+    file_id: int
+
+
+class BackButtonCallBack(CallbackData, prefix="back"):
+    action: str = "back"
+
+
+class EditRemindCallBack(CallbackData, prefix="edit"):
+    action: str = "edit"
+
+
+class EditFilesCallBack(CallbackData, prefix="edit_files"):
+    action: str

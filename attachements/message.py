@@ -1,3 +1,6 @@
+from database.models import Remind
+
+
 # -------------------------------------------------------------------------
 # Welcome scenario messages
 WELCOME_MSG = "Добро пожаловать пользователь. Как к вам можно обращаться?"
@@ -27,5 +30,24 @@ SHORING_MSG = "Вы уверены в выбранном типе напомин
 ADDING_FINISH = "Ваше напоминание успешно добавлено!"
 
 # -------------------------------------------------------------------------
+# Check remind list
+CHECK_START = " это список сделанных вами напоминаний:"
 
+# -------------------------------------------------------------------------
+
+
+# TODO: Поработать с оформлением текста в напоминании
+def get_remind_text(remind: Remind, categories):
+
+    res = ""
+    if categories:
+        for tag in categories:
+            res += f"#{tag[0].replace(' ', '')} "
+    else:
+        res = "-"
+
+    return f"Title: {remind.name}\n\n\n" \
+           f"Text: {remind.text}\n\n\n" \
+           f"Deadline: {remind.date_deadline}" \
+           f"Category: " + res
 

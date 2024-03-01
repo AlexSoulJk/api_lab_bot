@@ -3,6 +3,7 @@ from aiogram.fsm.state import State, StatesGroup
 class WellCome(StatesGroup):
     start = State()
 
+
 class AddRemind(StatesGroup):
     add_name = State()
     add_description = State()
@@ -15,5 +16,28 @@ class AddRemind(StatesGroup):
     try_add_category = State()
     add_type = State()
     end = State()
+
+
 class CalendaryS(StatesGroup):
     start = State()
+
+
+class CheckRemind(StatesGroup):
+    start = State()
+
+    generate_list = State()
+    check_remind = State()
+    check_files_list = State()
+    info = State()
+    close = State()
+
+
+class ChangeRemind(StatesGroup):
+    start = State()
+
+    change_name = State()
+    change_description = State()
+    change_file = State()
+    change_pic = State()
+    change_category = State()
+    change_type = State()

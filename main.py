@@ -5,7 +5,7 @@ import aiogram
 import asyncio
 
 from dotenv import load_dotenv
-from handlers import Any, welcom, info, addremind, calendary_ex
+from handlers import Any, welcom, info, addremind, calendary_ex, checkremindlist
 load_dotenv()
 tg_token = os.getenv("TG_TOKEN")
 
@@ -14,7 +14,7 @@ dp = aiogram.Dispatcher()
 
 
 # Auth branches of the scenario
-dp.include_routers(welcom.router, addremind.router, info.router, calendary_ex.router, Any.router)
+dp.include_routers(welcom.router, addremind.router, checkremindlist.router, info.router, calendary_ex.router, Any.router)
 # UI branches of the scenario
 #dp.include_routers()
 
