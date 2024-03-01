@@ -38,10 +38,10 @@ async def process_dialog_calendar(callback_query: CallbackQuery, callback_data: 
 
     if selected:
         await callback_query.message.answer(
-            f'Вы выбрали {date.strftime("%d/%m/%Y")}. Подтвердить введённую дату?',
+            f'Вы выбрали {date}. Подтвердить введённую дату?',
             reply_markup=kb.get_keyboard(btn.CONFIRMING)
         )
-        await state.update_data(choosed_data=date.strftime("%d/%m/%Y"))
+        await state.update_data(choosed_data=date)
         await state.update_data(id_delete_msg=callback_query.message.message_id)
     else:
         print(callback_data)
