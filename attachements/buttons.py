@@ -1,5 +1,5 @@
 from filters.callback import SkipCallback, ConfirmCallback, RemindTypeCallBack, BackButtonCallBack, \
-    ShowFilesCallBack, EditRemindCallBack, EditFilesCallBack, CloseCallBack, EditOptionCallBack
+    ShowFilesCallBack, EditRemindCallBack, EditFilesCallBack, CloseCallBack, EditOptionCallBack, CheckSampleRemind
 
 # ---------------------------------------------------------------------------------
 # Buttons
@@ -8,8 +8,7 @@ from filters.callback import SkipCallback, ConfirmCallback, RemindTypeCallBack, 
 CONFIRMING = [("Да", ConfirmCallback(confirm=True)),
               ("Нет", ConfirmCallback(confirm=False))]
 # SKIP
-SKIP = [("Пропустить", SkipCallback(skip=True)),
-        ("Остаться", SkipCallback(skip=False))]
+SKIP = [("Пропустить", SkipCallback(skip=True))]
 # Back
 
 
@@ -35,7 +34,7 @@ BACK_TO_REMIND = [("Вернуться к напоминанию", BackButtonCal
 # EDIT REMIND LIST
 EDIT_REMIND_LIST = [("Название", EditOptionCallBack(action="name")),
                     ("Описание", EditOptionCallBack(action="description")),
-                    ("Дедлайн", EditOptionCallBack(action="date_deadline")),
+                    ("Дедлайн", EditOptionCallBack(action="deadline")),
                     ("Изображение", EditOptionCallBack(action="picture")),
                     ("Прикреплённые файлы", EditOptionCallBack(action="files")),
                     ("Тип", EditOptionCallBack(action="type"))]
@@ -48,3 +47,8 @@ BACK_TO_NEW_REMIND = [("Вернуться к новому виду", BackButton
 EDIT_MORE = [("Изменить ещё", EditRemindCallBack(action="edit_more"))]
 EDITING_FINISH = [("Завершить изменения", EditRemindCallBack(action="end"))]
 EDIT_PART_OF_MENU = EDIT_MORE + EDITING_FINISH
+
+CHECK_SAMPLE = [("Посмотреть", CheckSampleRemind(action="check"))]
+
+CHECK_SAMPLE_DEFAULT = CHECK_SAMPLE + SKIP
+

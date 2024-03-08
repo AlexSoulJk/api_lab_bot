@@ -38,8 +38,8 @@ class ChangeRemind(StatesGroup):
     change_name = State()
     change_description = State()
     change_file = State()
-    change_pic = State()
+    change_deadline = State()
     change_category = State()
     change_type = State()
-
+    check_sample = State()
     choose_to_edit = State()

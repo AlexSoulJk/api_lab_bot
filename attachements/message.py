@@ -37,7 +37,14 @@ CHECK_END = "До свидания, "
 # -------------------------------------------------------------------------
 # Change remind
 CHANGE_NAME = "Введите новое название для напоминания."
+CHANGE_DESCRIPTION = "Введите новое описание для напоминания."
+CHANGE_DEADLINE = "Выберите новую дату."
+CHANGE_OPTION = "Выберите действие:"
+CHANGE_CATEGORIES_TO_DELETE = "Выберите категории, которые нужно удалить:"
+CHANGE_FILE_TO_DELETE = "Выберите файлы, которые нужно удалить:"
 
+#
+SHOW_SAMPLE = "Посмотрите как выглядит ваше напоминание перед внесением изменений."
 # -------------------------------------------------------------------------
 
 
@@ -53,6 +60,6 @@ def get_remind_text(remind: Remind, categories):
 
     return f"Title: {remind.name}\n\n\n" \
            f"Text: {remind.text}\n\n\n" \
-           f"Deadline: {remind.date_deadline}\n" \
+           f"Deadline: {remind.date_deadline.strftime('%Y-%m-%d')}\n" \
            f"Category: " + res
 

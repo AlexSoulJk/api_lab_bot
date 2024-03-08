@@ -48,3 +48,7 @@ class EditFilesCallBack(CallbackData, prefix="edit_files"):
 
 class CloseCallBack(CallbackData, prefix="close"):
     action: str
+
+
+class CheckSampleRemind(CallbackData, prefix="check"):
+    action: str
