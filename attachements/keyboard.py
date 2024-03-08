@@ -11,7 +11,7 @@ PAST_CHUNK = " ⯇"
 # TODO: Нужно учитывать bad_request от телеграмма в случае,
 # если пользователь per_in_chunk <= len
 
-def get_smart_list(items: list[tuple[str, CallbackData]], number_chunk=1):
+def get_smart_list(items: list[tuple[str, CallbackData]], suport_buttons: list[tuple[str, CallbackData]], number_chunk=1):
     builder = InlineKeyboardBuilder()
     number_chunk_ = number_chunk - 1
 
@@ -35,6 +35,11 @@ def get_smart_list(items: list[tuple[str, CallbackData]], number_chunk=1):
         adjust += (2,)
 
     adjust += (1,)
+
+    for item_text, callback_data in suport_buttons:
+        builder.button(text=item_text, callback_data=callback_data)
+
+    adjust += (1,) * len(suport_buttons)
     builder.adjust(*adjust)
     return builder.as_markup()
 

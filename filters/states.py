@@ -41,3 +41,5 @@ class ChangeRemind(StatesGroup):
     change_pic = State()
     change_category = State()
     change_type = State()
+
+    choose_to_edit = State()

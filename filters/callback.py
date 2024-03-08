@@ -39,5 +39,12 @@ class EditRemindCallBack(CallbackData, prefix="edit"):
     action: str = "edit"
 
 
+class EditOptionCallBack(CallbackData, prefix="edit_option"):
+    action: str
+
+
 class EditFilesCallBack(CallbackData, prefix="edit_files"):
+    action: str
+
+class CloseCallBack(CallbackData, prefix="close"):
     action: str

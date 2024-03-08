@@ -25,7 +25,7 @@ async def start_adding(message: Message, state: FSMContext):
     await state.set_state(AddRemind.add_name)
 
 
-@router.message(AddRemind.add_name)
+@router.message(AddRemind.add_name, F.text)
 async def input_name(message: Message, state: FSMContext):
     info = await state.get_data()
     await message.answer(info["user_name"] + ", " + msg.INPUT_REMIND_TEXT)
@@ -44,7 +44,7 @@ async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
 
 @router.message(AddRemind.add_file, F.document)
 async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
-    await bot.delete_message(chat_id=query.from_user.id, message_id=query.message_id)
+    #await bot.delete_message(chat_id=query.from_user.id, message_id=query.message_id)
     files_list = (await state.get_data()).get("list_remind_files")
     if files_list is None:
         files_list = []

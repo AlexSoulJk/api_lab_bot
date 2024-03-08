@@ -32,6 +32,11 @@ ADDING_FINISH = "Ваше напоминание успешно добавлен
 # -------------------------------------------------------------------------
 # Check remind list
 CHECK_START = " это список сделанных вами напоминаний:"
+CHECK_END = "До свидания, "
+
+# -------------------------------------------------------------------------
+# Change remind
+CHANGE_NAME = "Введите новое название для напоминания."
 
 # -------------------------------------------------------------------------
 
@@ -48,6 +53,6 @@ def get_remind_text(remind: Remind, categories):
 
     return f"Title: {remind.name}\n\n\n" \
            f"Text: {remind.text}\n\n\n" \
-           f"Deadline: {remind.date_deadline}" \
+           f"Deadline: {remind.date_deadline}\n" \
            f"Category: " + res
 
