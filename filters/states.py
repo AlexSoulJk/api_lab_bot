@@ -44,3 +44,7 @@ class ChangeRemind(StatesGroup):
     change_type = State()
     check_sample = State()
     choose_to_edit = State()
+
+
+class RemoveRemind(StatesGroup):
+    confirming = State()

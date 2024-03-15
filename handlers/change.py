@@ -206,9 +206,14 @@ async def show_files(query: CallbackQuery, state: FSMContext, bot: Bot):
 @router.callback_query(ChangeRemind.check_sample, SkipCallback.filter(F.skip == True))
 async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
+
     remind_id = (await state.get_data()).get("remind_id")
     remind_new = (await state.get_data()).get("remind_new")
     delete_list = (await state.get_data()).get("delete_dict")
+    id_delete_msg = (await state.get_data()).get("msg_remind_id")
+
+
+
     db.sql_query(query=update(Remind).where(Remind.id == remind_id).values(name=remind_new["name"],
                                                                            text=remind_new["description"],
                                                                            date_deadline=remind_new["date_deadline"],
@@ -221,6 +226,8 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
 
         if delete_id_files:
             db.sql_query(query=delete(File).where(File.id.in_(delete_id_files)), is_update=True)
+
+    await bot.delete_message(chat_id=query.from_user.id, message_id=id_delete_msg)
 
     await bot.send_message(chat_id=query.from_user.id, text=msg.EDIT_FINISH)
     await state.clear()
