@@ -1,6 +1,5 @@
 from database.models import Remind
 
-
 # -------------------------------------------------------------------------
 # Welcome scenario messages
 WELCOME_MSG = "Добро пожаловать пользователь. Как к вам можно обращаться?"
@@ -42,15 +41,21 @@ CHANGE_DEADLINE = "Выберите новую дату."
 CHANGE_OPTION = "Выберите действие:"
 CHANGE_CATEGORIES_TO_DELETE = "Выберите категории, которые нужно удалить:"
 CHANGE_FILE_TO_DELETE = "Выберите файлы, которые нужно удалить:"
+CHANGE_DICT = {"name": CHANGE_NAME,
+               "description": CHANGE_DESCRIPTION,
+               "date_deadline": CHANGE_DEADLINE}
 
+CHANGE_DICT_OPTIONAL_OBJ = {"files": CHANGE_FILE_TO_DELETE,
+                            "categories": CHANGE_CATEGORIES_TO_DELETE}
 #
 SHOW_SAMPLE = "Посмотрите как выглядит ваше напоминание перед внесением изменений."
+
+EDIT_FINISH = "Ваше напоминание успешно изменено!"
 # -------------------------------------------------------------------------
 
 
 # TODO: Поработать с оформлением текста в напоминании
 def get_remind_text(remind: Remind, categories):
-
     res = ""
     if categories:
         for tag in categories:
@@ -63,3 +68,24 @@ def get_remind_text(remind: Remind, categories):
            f"Deadline: {remind.date_deadline.strftime('%Y-%m-%d')}\n" \
            f"Category: " + res
 
+
+def get_remind_text_(remind, delete_list_categories=None):
+    res = ""
+
+    categories = remind["categories"]
+    if delete_list_categories:
+        categories = []
+        for item, i in remind["categories"]:
+            if i not in delete_list_categories:
+                categories.append((item, i))
+
+    if categories:
+        for tag, i in categories:
+            res += f"#{tag.replace(' ', '')} "
+    else:
+        res = "-"
+
+    return f"Title: {remind['name']}\n\n\n" \
+           f"Text: {remind['description']}\n\n\n" \
+           f"Deadline: {remind['date_deadline'].strftime('%Y-%m-%d')}\n" \
+           f"Category: " + res

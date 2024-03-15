@@ -46,9 +46,15 @@ class EditOptionCallBack(CallbackData, prefix="edit_option"):
 class EditFilesCallBack(CallbackData, prefix="edit_files"):
     action: str
 
+
 class CloseCallBack(CallbackData, prefix="close"):
     action: str
 
 
 class CheckSampleRemind(CallbackData, prefix="check"):
     action: str
+
+
+class EditOptionObject(CallbackData, prefix="edit_option_obj"):
+    is_touched: bool = False
+    id: int = -1

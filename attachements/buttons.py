@@ -1,5 +1,6 @@
 from filters.callback import SkipCallback, ConfirmCallback, RemindTypeCallBack, BackButtonCallBack, \
-    ShowFilesCallBack, EditRemindCallBack, EditFilesCallBack, CloseCallBack, EditOptionCallBack, CheckSampleRemind
+    ShowFilesCallBack, EditRemindCallBack, EditFilesCallBack, CloseCallBack, EditOptionCallBack, CheckSampleRemind, \
+    EditOptionObject
 
 # ---------------------------------------------------------------------------------
 # Buttons
@@ -23,10 +24,10 @@ SHOW_FILES = [("Показать вложенные файлы", ShowFilesCallBa
 EDIT_REMIND = [("Изменить.", EditRemindCallBack(action="edit"))]
 FINISH_REMIND_URGENTLY = [("Завершить досрочно.", CloseCallBack(action="close_urgently"))]
 REMOVE_REMIND = [("Удалить.", CloseCallBack(action="remove_remind"))]
-# Main remind menu
-REMIND_MENU_BAR = SHOW_FILES + EDIT_REMIND + FINISH_REMIND_URGENTLY + REMOVE_REMIND
-
 BACK_TO_REMIND_LIST = [("Вернуться к списку напоминаний", BackButtonCallBack(action="back_to_remind_list"))]
+# Main remind menu
+REMIND_MENU_BAR = SHOW_FILES + EDIT_REMIND + FINISH_REMIND_URGENTLY + BACK_TO_REMIND_LIST + REMOVE_REMIND
+
 CLOSE_REMIND_LIST = [("Закрыть список напоминаний", CloseCallBack(action="close_list"))]
 BACK_TO_REMIND = [("Вернуться к напоминанию", BackButtonCallBack(action="back_to_remind"))]
 
@@ -34,14 +35,14 @@ BACK_TO_REMIND = [("Вернуться к напоминанию", BackButtonCal
 # EDIT REMIND LIST
 EDIT_REMIND_LIST = [("Название", EditOptionCallBack(action="name")),
                     ("Описание", EditOptionCallBack(action="description")),
-                    ("Дедлайн", EditOptionCallBack(action="deadline")),
-                    ("Изображение", EditOptionCallBack(action="picture")),
+                    ("Дедлайн", EditOptionCallBack(action="date_deadline")),
                     ("Прикреплённые файлы", EditOptionCallBack(action="files")),
+                    ("Категорию", EditOptionCallBack(action="categories")),
                     ("Тип", EditOptionCallBack(action="type"))]
 # EDIT FILE LIST
-ADD_OR_DELITE = [("Удалить", EditFilesCallBack(action="delete")),
+ADD_OR_DELETE = [("Удалить", EditFilesCallBack(action="delete")),
                  ("Добавить", EditFilesCallBack(action="add"))]
-
+SUBMIT_DELETE = [("Удаление выбранное", EditOptionObject(is_touched=False, id=-1))]
 BACK_TO_EARLIER_REMIND = [("Вернуться к старому виду", BackButtonCallBack(action="back_into_early"))]
 BACK_TO_NEW_REMIND = [("Вернуться к новому виду", BackButtonCallBack(action="back_into_new"))]
 EDIT_MORE = [("Изменить ещё", EditRemindCallBack(action="edit_more"))]
@@ -52,3 +53,6 @@ CHECK_SAMPLE = [("Посмотреть", CheckSampleRemind(action="check"))]
 
 CHECK_SAMPLE_DEFAULT = CHECK_SAMPLE + SKIP
 
+# TOOLS DICT
+LIST_MOVES = {"reminds": CLOSE_REMIND_LIST,
+              "file_btn": BACK_TO_REMIND}
