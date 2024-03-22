@@ -26,7 +26,7 @@ async def start_adding(message: Message, state: FSMContext):
     user_id_ = user[0][1]
 
     remind_list = db.sql_query(query=select(Remind.name, Remind.id).where(
-        Remind.user_id == user_id_).where(Remind.date_finish == null()), is_single=False)
+        Remind.user_id == user_id_).where(Remind.date_finish == null()).where(Remind.date_is_delete == null()), is_single=False)
     remind_list_btn = kb.get_remind_list_of_btn(remind_list)
     await state.update_data(user_name=user[0][0])
     await state.update_data(cur_chunk=1)

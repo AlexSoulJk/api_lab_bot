@@ -50,8 +50,11 @@ def get_remind_list_of_btn(items: list[tuple]):
     return [(text, RemindListCallBack(remind_id=item_id)) for text, item_id in items]
 
 
-def get_files_list_of_btn(items: list[tuple]):
-    return [(text, FilesListCallBack(file_id=item_id)) for text, item_id in items]
+def get_files_list_of_btn(items: list[tuple], add_list_files=None):
+    if add_list_files is None:
+        add_list_files = []
+    return [(text, FilesListCallBack(file_id=item_id)) for text, item_id in items] + \
+        [(add_name, FilesListCallBack(file_id=-1)) for add_name, _ in add_list_files]
 
 
 def get_optional_object_btn(items: list[tuple]):

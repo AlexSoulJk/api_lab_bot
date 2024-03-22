@@ -21,6 +21,7 @@ async def start_adding(message: Message, state: FSMContext):
         User.user_id == str(message.from_user.id)), is_single=False)
     await state.update_data(user_name=user[0][0])
     await state.update_data(user_id=user[0][1])
+    await state.update_data(list_remind_files=[])
     await message.answer(user[0][0] + ", " + msg.INPUT_REMIND_NAME)
     await state.set_state(AddRemind.add_name)
 
@@ -39,6 +40,7 @@ async def input_name(message: Message, state: FSMContext):
 async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     await bot.send_message(chat_id=query.from_user.id, text=msg.INPUT_REMIND_FILE)
+    await state.update_data(is_one_add=True)
     await state.set_state(AddRemind.add_file)
 
 
@@ -46,15 +48,16 @@ async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
 async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
     #await bot.delete_message(chat_id=query.from_user.id, message_id=query.message_id)
     files_list = (await state.get_data()).get("list_remind_files")
-    if files_list is None:
-        files_list = []
+    is_one_add = (await state.get_data()).get("is_one_add")
     file_name = query.document.file_name
     print(file_name)
     files_list.append((file_name, query.document.file_id))
-    await state.update_data(list_remind_files=files_list)
-    await bot.send_message(chat_id=query.from_user.id,
-                           text=msg.TRY_INPUT_REMIND_FILE,
-                           reply_markup=kb.get_keyboard(btn.CONFIRMING))
+    if is_one_add:
+        await state.update_data(is_one_add=False)
+        await bot.send_message(chat_id=query.from_user.id,
+                                text=msg.TRY_INPUT_REMIND_FILE,
+                                reply_markup=kb.get_keyboard(btn.CONFIRMING))
+
     await state.set_state(AddRemind.try_add_file)
 
 

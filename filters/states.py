@@ -39,6 +39,7 @@ class ChangeRemind(StatesGroup):
     choose_option = State()
     choose_delete = State()
     change_file = State()
+    add_object = State()
     change_deadline = State()
     change_category = State()
     change_type = State()
@@ -47,4 +48,7 @@ class ChangeRemind(StatesGroup):
 
 
 class RemoveRemind(StatesGroup):
+    confirming = State()
+
+class CloseUrgently(StatesGroup):
     confirming = State()

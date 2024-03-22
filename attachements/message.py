@@ -44,7 +44,10 @@ CHANGE_FILE_TO_DELETE = "Выберите файлы, которые нужно 
 CHANGE_DICT = {"name": CHANGE_NAME,
                "description": CHANGE_DESCRIPTION,
                "date_deadline": CHANGE_DEADLINE}
-
+CHANGE_ADD_FILES = "Отправьте файл, который хотите прикрепить:"
+CHANGE_ADD_CATEGORIES = "Напишите категорию, которую хотите добавить для напоминания"
+CHANGE_DICT_ADDING_OBJ = {"files": CHANGE_ADD_FILES,
+                         "categories": CHANGE_ADD_CATEGORIES }
 CHANGE_DICT_OPTIONAL_OBJ = {"files": CHANGE_FILE_TO_DELETE,
                             "categories": CHANGE_CATEGORIES_TO_DELETE}
 #
@@ -58,6 +61,10 @@ REMOVE_SHOORING_MSG = "Вы уверены, что хотите удалить �
 REMOVE_CONFIRMED = " Ваше напоминание успешно удалено."
 
 # -------------------------------------------------------------------------
+# Close urgently scenario
+CLOSE_CONFIRMED = "Ваше напоминание успешно закрыто!\n " \
+                  "Чтобы посмотреть список закрытых напоминаний вы можете написать /list_closed"
+CLOSE_SHOORING_MSG = "Вы уверены, что хотите завершить напоминание раньше?"
 
 # TODO: Поработать с оформлением текста в напоминании
 def get_remind_text(remind: Remind, categories):
@@ -74,15 +81,14 @@ def get_remind_text(remind: Remind, categories):
            f"Category: " + res
 
 
-def get_remind_text_(remind, delete_list_categories=None):
+def get_remind_text_(remind, add_list_categories=None):
+
     res = ""
 
-    categories = remind["categories"]
-    if delete_list_categories:
-        categories = []
-        for item, i in remind["categories"]:
-            if i not in delete_list_categories:
-                categories.append((item, i))
+    if add_list_categories is None:
+        add_list_categories = []
+
+    categories = remind["categories"] + add_list_categories
 
     if categories:
         for tag, i in categories:

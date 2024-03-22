@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, JSON, TIME
 
 load_dotenv()
 Base = declarative_base()
@@ -29,6 +29,7 @@ class Remind(Base):
     date_start = Column(Date, nullable=False)
     date_deadline = Column(Date, nullable=True)
     date_finish = Column(Date, nullable=True)
+    date_is_delete = Column(Date, nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
     #TODO: JSON TYPE FOR CATEGORY OR ANOTHER TABLE?
