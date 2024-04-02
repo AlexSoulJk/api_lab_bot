@@ -2,12 +2,14 @@ from aiogram.fsm.state import State, StatesGroup
 
 class WellCome(StatesGroup):
     start = State()
+    change_name = State()
 
 
 class AddRemind(StatesGroup):
     add_name = State()
     add_description = State()
     add_deadline = State()
+    add_deadline_time = State()
     try_add_file = State()
     add_file = State()
     try_add_pic = State()
@@ -52,3 +54,6 @@ class RemoveRemind(StatesGroup):
 
 class CloseUrgently(StatesGroup):
     confirming = State()
+
+class TimePicker(StatesGroup):
+    start = State()

@@ -4,6 +4,9 @@ from database.models import Remind
 # Welcome scenario messages
 WELCOME_MSG = "Добро пожаловать пользователь. Как к вам можно обращаться?"
 REMEMBER_YOU = "Отлично, я запомнил вас "
+WANNA_CHANGE_NAME = ", хотите изменить имя?"
+INPUT_NEW_NAME = "Введите новое имя"
+CANCEL_CHANGING = "Понял вас, не будем торопиться)"
 # -------------------------------------------------------------------------
 # Info scenario message
 INFO_MSG = "Вы можете использовать следующие команды: \n" \
