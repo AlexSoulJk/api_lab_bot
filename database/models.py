@@ -1,9 +1,12 @@
+import datetime
 import os
 
 from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import AsyncAttrs
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, JSON, TIME
+from sqlalchemy.orm import DeclarativeBase
 
 load_dotenv()
 Base = declarative_base()
@@ -14,8 +17,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
-    date_start = Column(Date, nullable=False)
-    user_id = Column(String(100))
+    date_start = Column(Date, nullable=False, default=datetime.datetime.utcnow)
+    user_id = Column(String(100), unique=True)
 
 
 class Remind(Base):
@@ -26,7 +29,7 @@ class Remind(Base):
     text = Column(String(100))
     image_url = Column(String(100), nullable=True)
 
-    date_start = Column(Date, nullable=False)
+    date_start = Column(Date, nullable=False, default=datetime.datetime.utcnow)
     date_deadline = Column(Date, nullable=True)
     date_finish = Column(Date, nullable=True)
     date_is_delete = Column(Date, nullable=True)
