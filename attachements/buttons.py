@@ -1,6 +1,6 @@
 from filters.callback import SkipCallback, ConfirmCallback, RemindTypeCallBack, BackButtonCallBack, \
     ShowFilesCallBack, EditRemindCallBack, EditFilesCallBack, CloseCallBack, EditOptionCallBack, CheckSampleRemind, \
-    EditOptionObject
+    EditOptionObject, ClockCallback
 
 # ---------------------------------------------------------------------------------
 # Buttons
@@ -56,3 +56,23 @@ CHECK_SAMPLE_DEFAULT = CHECK_SAMPLE + SKIP
 # TOOLS DICT
 LIST_MOVES = {"reminds": CLOSE_REMIND_LIST,
               "file_btn": BACK_TO_REMIND}
+
+# CLOCK BUTTONS
+
+DECREASE_BUTTONS_MINUTES = [('⯇⯇⯇', ClockCallback(action="change", typo="m", data=-15)),
+                            ('⯇⯇', ClockCallback(action="change", typo="m", data=-5)),
+                            ('⯇', ClockCallback(action="change", typo="m", data=-1))]
+
+DECREASE_BUTTONS_HOURS = [('⯇⯇⯇', ClockCallback(action="change", typo="h", data=-5)),
+                          ('⯇⯇', ClockCallback(action="change", typo="h", data=-2)),
+                          ('⯇', ClockCallback(action="change", typo="h", data=-1))]
+
+INCREASE_BUTTONS_MINUTES = [('⯈', ClockCallback(action="change", typo="m", data=1)),
+                            ('⯈⯈', ClockCallback(action="change", typo="m", data=5)),
+                            ('⯈⯈⯈', ClockCallback(action="change", typo="m", data=15))]
+
+INCREASE_BUTTONS_HOURS = [('⯈', ClockCallback(action="change", typo="h", data=1)),
+                          ('⯈⯈', ClockCallback(action="change", typo="h", data=2)),
+                          ('⯈⯈⯈', ClockCallback(action="change", typo="h", data=5))]
+
+HOLE = [(" ", ClockCallback(action="nothing", typo="hole", data=2003))]
