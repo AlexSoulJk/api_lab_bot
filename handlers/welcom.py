@@ -15,6 +15,7 @@ router = Router()
 
 
 @router.message(Command(commands="start"))
+@router.message(Command(commands="name"))
 async def start_using(message: Message, state: FSMContext):
     name = db.sql_query(query=select(User.name).where(User.user_id == str(message.from_user.id)))
     if name:
@@ -41,7 +42,8 @@ async def change_name(query: CallbackQuery, state: FSMContext, bot: Bot):
 
 @router.message(WellCome.change_name)
 async def get_new_name(message: Message, state: FSMContext):
-    db.sql_query(query=update(User).where(User.user_id == str(message.from_user.id)).values(name=message.text), is_update=True)
+    db.sql_query(query=update(User).where(User.user_id == str(message.from_user.id)).values(name=message.text),
+                 is_update=True)
     await message.answer(text=msg.REMEMBER_YOU + message.text)
     await state.clear()
 

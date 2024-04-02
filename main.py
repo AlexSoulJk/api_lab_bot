@@ -20,9 +20,17 @@ dp.include_routers(welcom.router, addremind.router, checkremindlist.router, chan
 # UI branches of the scenario
 #dp.include_routers()
 
-
-
+commands = [
+    {"command": "name", "description": "Изменить имя"},
+    {"command": "add", "description": "Добавить напоминание"},
+    {"command": "check", "description": "Просмотреть список напоминаний"},
+    {"command": "check_daily", "description": "Просмотреть список напоминаний на этот день"},
+]
 async def main():
+
+
+    # Устанавливаем команды для бота
+    await bot.set_my_commands(commands)
     try:
         # db.connect()
         await asyncio.wait([asyncio.create_task(dp.start_polling(bot))], return_when=asyncio.FIRST_COMPLETED)
