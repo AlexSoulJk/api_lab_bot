@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Optional
+
 from aiogram.filters.callback_data import CallbackData
 
 
@@ -58,3 +60,9 @@ class CheckSampleRemind(CallbackData, prefix="check"):
 class EditOptionObject(CallbackData, prefix="edit_option_obj"):
     is_touched: bool = False
     id: int = -1
+
+
+class ClockCallback(CallbackData, prefix='inline_timepicker'):
+    action: Optional[str] = None
+    typo: Optional[str] = None
+    data: Optional[int] = None

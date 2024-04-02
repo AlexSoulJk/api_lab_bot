@@ -50,7 +50,6 @@ async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
     files_list = (await state.get_data()).get("list_remind_files")
     is_one_add = (await state.get_data()).get("is_one_add")
     file_name = query.document.file_name
-    print(file_name)
     files_list.append((file_name, query.document.file_id))
     if is_one_add:
         await state.update_data(is_one_add=False)
@@ -146,7 +145,7 @@ async def adding_remind_end(query: CallbackQuery, state: FSMContext, bot: Bot):
     if not img:
         img = null()
 
-    id = db.create_object(model=Remind(
+    id = await db.create_object(model=Remind(
         name=name_,
         text=info["remind_description"],
         date_start=date_now,
@@ -161,6 +160,5 @@ async def adding_remind_end(query: CallbackQuery, state: FSMContext, bot: Bot):
                        for file_name_, file_url_ in info["list_remind_files"]])
 
     db.create_objects([Category(remind_id=id,
-                                category_name=category_name_)
-                       for category_name_ in info["list_category"]])
+                                category_name=category_name_) for category_name_ in info["list_category"]])
     await state.clear()

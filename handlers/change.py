@@ -106,6 +106,7 @@ async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bo
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     cur_change = (await state.get_data()).get("cur_change")
     await bot.send_message(chat_id=query.from_user.id, text=msg.CHANGE_DICT_ADDING_OBJ[cur_change])
+    await state.update_data(is_one_add=True)
     await state.set_state(ChangeRemind.add_object)
 
 
@@ -114,7 +115,7 @@ async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bo
 async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bot: Bot):
     cur_change = (await state.get_data()).get("cur_change")
     list_to_add = (await state.get_data()).get("add_objects")
-
+    is_add_one = (await state.get_data()).get("is_one_add")
     if cur_change == "files":
         list_to_add[cur_change].append((query.document.file_name, query.document.file_id))
     elif cur_change == "categories":
@@ -122,8 +123,10 @@ async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bo
 
     await state.update_data(add_objects=list_to_add)
 
-    await bot.send_message(chat_id=query.from_user.id, text=msg.SHOW_SAMPLE,
-                           reply_markup=kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))
+    if is_add_one:
+        await state.update_data(is_one_add=False)
+        await bot.send_message(chat_id=query.from_user.id, text=msg.SHOW_SAMPLE,
+                                reply_markup=kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))
 
     await state.set_state(ChangeRemind.check_sample)
 
@@ -242,6 +245,7 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
     remind_new = (await state.get_data()).get("remind_new")
     delete_list = (await state.get_data()).get("delete_dict")
     id_delete_msg = (await state.get_data()).get("msg_remind_id")
+    add_dict = (await state.get_data()).get("add_objects")
 
     db.sql_query(query=update(Remind).where(Remind.id == remind_id).values(name=remind_new["name"],
                                                                            text=remind_new["description"],
@@ -255,6 +259,17 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
 
         if delete_id_files:
             db.sql_query(query=delete(File).where(File.id.in_(delete_id_files)), is_update=True)
+
+    if len(add_dict["files"]):
+        db.create_objects([File(remind_id=id,
+                                file_name=file_name_,
+                                file_url=file_url_)
+                           for file_name_, file_url_ in add_dict["files"]])
+
+    if len(add_dict["categories"]):
+        db.create_objects([Category(remind_id=id,
+                                    category_name=category_name_)
+                           for category_name_ in add_dict["categories"]])
 
     await bot.delete_message(chat_id=query.from_user.id, message_id=id_delete_msg)
 

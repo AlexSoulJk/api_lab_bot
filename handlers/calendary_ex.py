@@ -37,6 +37,7 @@ async def process_dialog_calendar(callback_query: CallbackQuery, callback_data: 
     ).process_selection(callback_query, callback_data)
 
     if selected:
+
         await callback_query.message.answer(
             f'Вы выбрали {date}. Подтвердить введённую дату?',
             reply_markup=kb.get_keyboard(btn.CONFIRMING)
@@ -46,7 +47,7 @@ async def process_dialog_calendar(callback_query: CallbackQuery, callback_data: 
     else:
         print(callback_data)
 
-@router.callback_query(AddRemind.add_deadline, ConfirmCallback.filter(F.confirm == True))
+@router.callback_query(AddRemind.add_deadline_time, ConfirmCallback.filter(F.confirm == True))
 async def date_confirmed(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.message.answer(msg.TRY_INPUT_REMIND_FILE,
                              reply_markup=kb.get_keyboard(btn.CONFIRMING))
