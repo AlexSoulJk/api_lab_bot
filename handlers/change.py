@@ -8,8 +8,6 @@ from attachements import buttons as btn
 from attachements import keyboard as kb
 from attachements import message as msg
 from attachements import tools as t
-from calendary import calendary as c
-from calendary.common import get_user_locale
 from database.db import db
 from database.models import File, Remind, Category
 from filters.callback import EditRemindCallBack, EditOptionCallBack, BackButtonCallBack, \
@@ -32,13 +30,13 @@ async def start_changing(query: CallbackQuery, state: FSMContext, bot: Bot):
         await state.update_data(remind_new=deepcopy(info["remind_tmp"]))
         await state.update_data(add_objects={"files": [],
                                              "categories": []})
+        await state.update_data(is_changing=True)
     await state.update_data(msg_remind_id=query.message.message_id)
     await state.set_state(ChangeRemind.start)
 
 
 @router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "name"))
 @router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "description"))
-@router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "date_deadline"))
 async def change_without_option_start(query: CallbackQuery, callback_data: CallbackData, state: FSMContext, bot: Bot):
     await bot.edit_message_reply_markup(chat_id=query.from_user.id,
                                         message_id=query.message.message_id,
@@ -46,14 +44,9 @@ async def change_without_option_start(query: CallbackQuery, callback_data: Callb
                                         reply_markup=None)
     key = str(callback_data.action)
     await bot.send_message(chat_id=query.from_user.id,
-                           text=msg.CHANGE_DICT[key],
-                           reply_markup=(await c.DialogCalendar(locale=await get_user_locale(query.from_user)
-                                                                ).start_calendar(), None)[
-                               key != "date_deadline"]
-                           )
+                           text=msg.CHANGE_DICT[key])
     await state.update_data(cur_change=key)
-    await state.set_state(
-        (ChangeRemind.change_text, ChangeRemind.change_deadline)[callback_data.action == "date_deadline"])
+    await state.set_state(ChangeRemind.change_text)
 
 
 @router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "files"))
@@ -78,25 +71,6 @@ async def change_text(query: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.send_message(chat_id=query.from_user.id, text=msg.SHOW_SAMPLE,
                            reply_markup=kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))
     await state.set_state(ChangeRemind.check_sample)
-
-
-@router.callback_query(ChangeRemind.change_deadline, c.DialogCalendarCallback.filter())
-async def process_dialog_calendar(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
-    selected, date = await c.DialogCalendar(
-        locale=await get_user_locale(callback_query.from_user)
-    ).process_selection(callback_query, callback_data)
-
-    if selected:
-        await callback_query.message.answer(
-            f'Вы выбрали {date.strftime("%Y-%m-%d")}.\n' + msg.SHOW_SAMPLE,
-            reply_markup=kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT)
-        )
-        remind = (await state.get_data()).get("remind_new")
-        cur_change = (await state.get_data()).get("cur_change")
-        remind[cur_change] = date
-        await state.update_data(remind_new=remind)
-        await state.update_data(id_delete_msg=callback_query.message.message_id)
-        await state.set_state(ChangeRemind.check_sample)
 
 
 @router.callback_query(ChangeRemind.choose_option, EditFilesCallBack.filter(F.action == "add"))
@@ -200,7 +174,7 @@ async def check_sample(query: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.delete_message(chat_id=query.from_user.id, message_id=info["msg_remind_id"])
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     id_to_delete = info.get("id_delete_msg")
-
+    # TODO: Debug delete calendary confirming message
     if id_to_delete is not None:
         await bot.delete_message(chat_id=query.from_user.id, message_id=id_to_delete)
 

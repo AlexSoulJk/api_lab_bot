@@ -107,7 +107,6 @@ def update(buttons, current_time):
     minutes = current_time.minute
     buttons[1][3] = (str(hour), ClockCallback(action='nothing'))
     buttons[2][3] = (str(minutes), ClockCallback(action='nothing'))
-    data_now = datetime.datetime.now()
     current_minute_buttons = btn.DECREASE_BUTTONS_MINUTES + btn.INCREASE_BUTTONS_MINUTES
 
     current_hour_buttons = btn.DECREASE_BUTTONS_HOURS + btn.INCREASE_BUTTONS_HOURS

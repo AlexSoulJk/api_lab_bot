@@ -1,12 +1,10 @@
-import dataclasses
-
 from aiogram import Router, Bot, F
 from aiogram.types import Message, CallbackQuery
-from aiogram.filters import Command
 from attachements import keyboard as kb
 from attachements import buttons as btn
+from attachements import message as msg
 from filters.callback import ConfirmCallback, RemindTypeCallBack
-from filters.states import TimePicker, AddRemind
+from filters.states import TimePicker, AddRemind, Calendary, ChangeRemind
 import datetime
 from aiogram.fsm.context import FSMContext
 from attachements.clock import ClockCallback
@@ -15,11 +13,9 @@ from attachements import clock as c
 router = Router()
 
 
-@router.message(Command(commands="timer"))
-@router.callback_query(AddRemind.add_deadline, ConfirmCallback.filter(F.confirm == True))
+@router.callback_query(Calendary.start, ConfirmCallback.filter(F.confirm == True))
 @router.callback_query(AddRemind.add_deadline_time, ConfirmCallback.filter(F.confirm == False))
 async def send_welcome(message: Message, state: FSMContext, bot: Bot):
-
     # TODO: Подумать над временем, которое здесь используется
     date = (await state.get_data()).get("choosed_data")
     but_, current_hours, current_minutes = c.get_clock(is_today=date == datetime.datetime.now())
@@ -38,13 +34,24 @@ async def send_welcome(message: Message, state: FSMContext, bot: Bot):
 async def cb_handler(query: CallbackQuery, callback_data: ClockCallback, state: FSMContext, bot: Bot):
     cur_time = (await state.get_data()).get("choosed_data")
     but_ = (await state.get_data()).get("buttons")
+    is_changing = (await state.get_data()).get("is_changing")
     cur_time, flag = c.handle(current_time=cur_time, callback_data=callback_data)
 
     if flag:
+
         await bot.edit_message_text(chat_id=query.from_user.id,
-                                    text=str(cur_time),
-                                    message_id=query.message.message_id, reply_markup=kb.get_keyboard(btn.CONFIRMING))
-        await state.set_state(AddRemind.add_deadline_time)
+                                    text=str(cur_time) + ". " + ("", msg.SHOW_SAMPLE)[is_changing],
+                                    message_id=query.message.message_id,
+                                    reply_markup=(kb.get_keyboard(btn.CONFIRMING),
+                                                  kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))[is_changing])
+        if is_changing:
+            remind = (await state.get_data()).get("remind_new")
+            cur_change = (await state.get_data()).get("cur_change")
+            remind[cur_change] = cur_time
+            await state.update_data(remind_new=remind)
+
+        await state.set_state((AddRemind.add_deadline_time,
+                               ChangeRemind.check_sample)[is_changing])
     else:
         c.update(but_, cur_time)
         but = c.get_keyboard_clock_(but_)
@@ -96,6 +103,3 @@ async def cb_handler_interval(query: CallbackQuery, callback_data: ClockCallback
                                             reply_markup=but.as_markup())
 
     await state.update_data(interval_time=handle_result)
-
-
-

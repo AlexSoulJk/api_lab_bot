@@ -10,7 +10,6 @@ from aiogram.types import Message, CallbackQuery, BufferedInputFile, FSInputFile
 from database.db import db
 from database.models import User, File, Remind, Category
 from sqlalchemy import select, update, null, desc
-import datetime
 
 router = Router()
 
@@ -23,6 +22,7 @@ async def start_adding(message: Message, state: FSMContext):
     await state.update_data(user_id=user[0][1])
     await state.update_data(list_remind_files=[])
     await state.update_data(list_category=[])
+    await state.update_data(is_changing=False)
     await message.answer(user[0][0] + ", " + msg.INPUT_REMIND_NAME)
     await state.set_state(AddRemind.add_name)
 
@@ -36,6 +36,12 @@ async def input_name(message: Message, state: FSMContext):
 
 
 ## goto calendary handler
+
+@router.callback_query(AddRemind.add_deadline_time, ConfirmCallback.filter(F.confirm == True))
+async def date_confirmed(callback_query: CallbackQuery, state: FSMContext):
+        await callback_query.message.answer(msg.TRY_INPUT_REMIND_FILE,
+                             reply_markup=kb.get_keyboard(btn.CONFIRMING))
+        await state.set_state(AddRemind.try_add_file)
 @router.callback_query(AddRemind.try_add_file,
                        ConfirmCallback.filter(F.confirm == True))
 async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):

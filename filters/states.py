@@ -59,3 +59,6 @@ class CloseUrgently(StatesGroup):
 class TimePicker(StatesGroup):
     start = State()
     interval_start = State()
+
+class Calendary(StatesGroup):
+    start = State()
