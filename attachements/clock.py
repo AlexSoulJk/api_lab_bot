@@ -14,10 +14,18 @@ STEPS_MINUTE = [-15, -5, -1, 1, 5, 15]
 CONDITIONS = {"h": lambda time: 0 <= time < 24,
               "m": lambda time: 0 <= time <= 59}
 
-def get_clock(current_time: datetime.datetime):
+
+def get_clock(is_today=False):
     res = [[], [], [], [], []]
-    current_minute = current_time.minute
-    current_hours = current_time.hour
+
+    current_minute = 0
+    current_hours = 0
+
+    if is_today:
+        current_time = datetime.datetime.now()
+        current_minute = current_time.minute
+        current_hours = current_time.hour
+
     condition_m = CONDITIONS["m"]
     condition_h = CONDITIONS["h"]
     for diff in STEPS_HOUR:
@@ -60,7 +68,7 @@ def get_clock(current_time: datetime.datetime):
             res[3].append(("m\n⯅", ClockCallback(action='nothing')))
 
     res[4].append(('OK', ClockCallback(action="success")))
-    return res
+    return res, current_hours, current_minute
 
 
 def get_keyboard_clock_(buttons):
@@ -76,8 +84,6 @@ def get_keyboard_clock_(buttons):
 
 def handle(current_time, callback_data):
     action, typo, data = callback_data.action, callback_data.typo, callback_data.data
-    curr_date_time = datetime.datetime.now().replace(hour=current_time.hour,
-                                                     minute=current_time.minute)
     minute_step_date_time = datetime.timedelta(minutes=1)
     hour_step_date_time = datetime.timedelta(hours=1)
 
@@ -86,10 +92,10 @@ def handle(current_time, callback_data):
 
     if action == 'change':
         if typo == 'h':
-            curr_date_time += data * hour_step_date_time
+            current_time += data * hour_step_date_time
         elif typo == 'm':
-            curr_date_time += data * minute_step_date_time
-    return curr_date_time, False
+            current_time += data * minute_step_date_time
+    return current_time, False
 
 
 def update(buttons, current_time):

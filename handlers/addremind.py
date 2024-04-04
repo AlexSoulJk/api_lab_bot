@@ -47,7 +47,7 @@ async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
 
 @router.message(AddRemind.add_file, F.document)
 async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
-    #await bot.delete_message(chat_id=query.from_user.id, message_id=query.message_id)
+    # await bot.delete_message(chat_id=query.from_user.id, message_id=query.message_id)
     files_list = (await state.get_data()).get("list_remind_files")
     is_one_add = (await state.get_data()).get("is_one_add")
     file_name = query.document.file_name
@@ -55,43 +55,19 @@ async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
     if is_one_add:
         await state.update_data(is_one_add=False)
         await bot.send_message(chat_id=query.from_user.id,
-                                text=msg.TRY_INPUT_REMIND_FILE,
-                                reply_markup=kb.get_keyboard(btn.CONFIRMING))
+                               text=msg.TRY_INPUT_REMIND_FILE,
+                               reply_markup=kb.get_keyboard(btn.CONFIRMING))
 
     await state.set_state(AddRemind.try_add_file)
 
 
 @router.callback_query(AddRemind.try_add_file,
                        ConfirmCallback.filter(F.confirm == False))
-async def try_add_pic(query: CallbackQuery, state: FSMContext, bot=Bot):
-    await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
-    await bot.send_message(chat_id=query.from_user.id,
-                           text=msg.TRY_INPUT_REMIND_PICTURE,
-                           reply_markup=kb.get_keyboard(btn.CONFIRMING))
-    await state.set_state(AddRemind.try_add_pic)
-
-
-@router.callback_query(AddRemind.try_add_pic,
-                       ConfirmCallback.filter(F.confirm == True))
-async def start_input_pic(query: CallbackQuery, state: FSMContext, bot=Bot):
-    await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
-    await bot.send_message(chat_id=query.from_user.id, text=msg.INPUT_REMIND_PICTURE)
-    await state.set_state(AddRemind.add_pic)
-
-
-@router.callback_query(AddRemind.try_add_pic,
-                       ConfirmCallback.filter(F.confirm == False))
 @router.callback_query(AddRemind.try_add_category, ConfirmCallback.filter(F.confirm == True))
-@router.message(AddRemind.add_pic, F.photo)
 async def input_pic(query: CallbackQuery, state: FSMContext, bot=Bot):
-    if await state.get_state() == AddRemind.add_pic:
-        await state.update_data(remind_photo=query.photo[-1].file_id)
-    else:
-        await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
-
+    await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     await bot.send_message(chat_id=query.from_user.id,
                            text=msg.INPUT_REMIND_CATEGORY)
-
     await state.set_state(AddRemind.add_category)
 
 
@@ -122,9 +98,8 @@ async def add_category_finish(query: CallbackQuery, state: FSMContext, bot=Bot):
     await state.set_state(AddRemind.add_type)
 
 
-@router.callback_query(AddRemind.add_type, RemindTypeCallBack.filter(F.type))
-async def confirming_adding_type(query: CallbackQuery, callback_data: RemindTypeCallBack, state: FSMContext, bot: Bot):
-    await state.update_data(type_of_remind=callback_data.type)
+@router.callback_query(AddRemind.add_type, RemindTypeCallBack.filter(F.type == "common"))
+async def confirming_adding_type(query: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.send_message(chat_id=query.from_user.id, text=msg.SHORING_MSG,
                            reply_markup=kb.get_keyboard(btn.CONFIRMING))
     await state.set_state(AddRemind.end)
@@ -136,21 +111,19 @@ async def adding_remind_end(query: CallbackQuery, state: FSMContext, bot: Bot):
     # TODO: Добавление в бд.
     info = await state.get_data()
 
-    img = info.get("remind_photo")
-    date_now = datetime.date.today()
     name_ = info["remind_name"]
     user_id_ = info["user_id"]
-    if not img:
-        img = null()
+    interval_time = info.get("interval_time_")
+
+    if not interval_time:
+        interval_time = null()
 
     id = db.create_object(model=Remind(
         name=name_,
         text=info["remind_description"],
-        date_start=date_now,
         date_deadline=info["choosed_data"],
         user_id=user_id_,
-        type=info["type_of_remind"],
-        image_url=img))
+        interval=interval_time))
 
     db.create_objects([File(remind_id=id,
                             file_name=file_name_,

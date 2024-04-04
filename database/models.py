@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncAttrs
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, JSON, TIME, DateTime, Interval
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, JSON, TIME, DateTime, Interval, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase
 
 load_dotenv()
@@ -28,7 +28,7 @@ class Remind(Base):
     name = Column(String(100))
     text = Column(String(100))
 
-    date_start = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    date_start = Column(TIMESTAMP, nullable=False, default=datetime.datetime.utcnow)
     date_deadline = Column(DateTime, nullable=False)
     date_finish = Column(Date, nullable=True)
     date_is_delete = Column(DateTime, nullable=True)

@@ -1,5 +1,4 @@
 from copy import deepcopy
-
 from aiogram import Router, Bot, F
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext

@@ -39,7 +39,7 @@ async def process_dialog_calendar(callback_query: CallbackQuery, callback_data: 
     if selected:
 
         await callback_query.message.answer(
-            f'Вы выбрали {date}. Подтвердить введённую дату?',
+            f'Вы выбрали {date.strftime("%Y-%m-%d")}. Подтвердить введённую дату?',
             reply_markup=kb.get_keyboard(btn.CONFIRMING)
         )
         await state.update_data(choosed_data=date)

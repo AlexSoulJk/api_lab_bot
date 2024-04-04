@@ -17,6 +17,7 @@ class AddRemind(StatesGroup):
     add_category = State()
     try_add_category = State()
     add_type = State()
+    interval_start = State()
     end = State()
 
 
@@ -57,3 +58,4 @@ class CloseUrgently(StatesGroup):
 
 class TimePicker(StatesGroup):
     start = State()
+    interval_start = State()
