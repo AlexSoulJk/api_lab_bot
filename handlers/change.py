@@ -1,27 +1,25 @@
-from aiogram.filters import Command
+from copy import deepcopy
+
+from aiogram import Router, Bot, F
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
-from filters.states import CheckRemind, ChangeRemind
-from aiogram import Router, Bot, F, types
-from attachements import message as msg
-from attachements import keyboard as kb
+from aiogram.types import CallbackQuery
+from sqlalchemy import update, delete
 from attachements import buttons as btn
+from attachements import keyboard as kb
+from attachements import message as msg
 from attachements import tools as t
-from filters.callback import ConfirmCallback, EditRemindCallBack, EditOptionCallBack, BackButtonCallBack, \
-    CheckSampleRemind, SkipCallback, EditFilesCallBack, EditOptionObject, ButLeftRightCallBack, ShowFilesCallBack
-from aiogram.types import Message, CallbackQuery, BufferedInputFile, FSInputFile, InputMediaPhoto
-from copy import deepcopy
 from calendary import calendary as c
 from calendary.common import get_user_locale
 from database.db import db
-from database.models import User, File, Remind, Category
-from sqlalchemy import select, update, null, desc, delete
-import datetime
+from database.models import File, Remind, Category
+from filters.callback import EditRemindCallBack, EditOptionCallBack, BackButtonCallBack, \
+    CheckSampleRemind, SkipCallback, EditFilesCallBack, EditOptionObject, ButLeftRightCallBack, ShowFilesCallBack
+from filters.states import CheckRemind, ChangeRemind
 
 router = Router()
 
 
-# TODO: Debug list_add key??????
 @router.callback_query(CheckRemind.check_remind,
                        EditRemindCallBack.filter(F.action == "edit"))
 @router.callback_query(ChangeRemind.choose_to_edit,
@@ -234,7 +232,7 @@ async def back_remind_switch(query: CallbackQuery, state: FSMContext, bot: Bot):
 async def show_files(query: CallbackQuery, state: FSMContext, bot: Bot):
     is_new = (await state.get_data()).get("is_new")
     remind = (await state.get_data()).get("remind_" + ("new", "tmp")[not is_new])
-    add_files = ((await state.get_data()).get("add_list")["files"], None)[not is_new]
+    add_files = ((await state.get_data()).get("add_objects")["files"], None)[not is_new]
     await bot.edit_message_reply_markup(chat_id=query.from_user.id, message_id=query.message.message_id,
                                         reply_markup=kb.get_smart_list(
                                             kb.get_files_list_of_btn(remind["files"], add_files),
