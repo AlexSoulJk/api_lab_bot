@@ -5,7 +5,6 @@ def create_tmp(remind, files, categories) -> dict[str,]:
     return {"name": remind.name,
             "description": remind.text,
             "date_deadline": remind.date_deadline,
-            "type": remind.type,
             "files": files,
             "categories": categories
             }

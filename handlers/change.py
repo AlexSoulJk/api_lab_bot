@@ -148,17 +148,20 @@ async def process_optional_choose_delete_obj(query: CallbackQuery,
                                              callback_data: CallbackData,
                                              state: FSMContext,
                                              bot: Bot):
+    cur_chunk = (await state.get_data()).get("cur_chunk")
     list_of_btn = kb.update_delete_list(
         (await state.get_data()).get("list_to_delete"),
         callback_data.id)
     await bot.edit_message_reply_markup(chat_id=query.from_user.id, message_id=query.message.message_id,
-                                        reply_markup=kb.get_smart_list(list_of_btn, btn.SUBMIT_DELETE))
+                                        reply_markup=kb.get_smart_list(list_of_btn,
+                                                                       btn.SUBMIT_DELETE,
+                                                                       cur_chunk))
     await state.update_data(list_to_delete=list_of_btn)
 
 
-@router.callback_query(CheckRemind.check_files_list,
+@router.callback_query(ChangeRemind.choose_delete,
                        ButLeftRightCallBack.filter(F.action == "past_chunk"))
-@router.callback_query(CheckRemind.check_files_list,
+@router.callback_query(ChangeRemind.choose_delete,
                        ButLeftRightCallBack.filter(F.action == "next_chunk"))
 async def delete_list_move(query: CallbackQuery, callback_data: ButLeftRightCallBack,
                            state: FSMContext, bot: Bot):
@@ -218,7 +221,8 @@ async def check_sample(query: CallbackQuery, state: FSMContext, bot: Bot):
 async def back_remind_switch(query: CallbackQuery, state: FSMContext, bot: Bot):
     info = await state.get_data()
     await bot.edit_message_text(chat_id=query.from_user.id, message_id=query.message.message_id,
-                                text=msg.get_remind_text_(info["remind_" + ("new", "tmp")[info["is_new"]]]),
+                                text=msg.get_remind_text_(info["remind_" + ("new", "tmp")[info["is_new"]]],
+                                                          (info["add_objects"]["categories"], None)[info["is_new"]]),
                                 reply_markup=kb.get_keyboard(
                                     btn.SHOW_FILES + (btn.BACK_TO_EARLIER_REMIND, btn.BACK_TO_NEW_REMIND)[
                                         info["is_new"]]
@@ -246,7 +250,6 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
     remind_id = (await state.get_data()).get("remind_id")
     remind_new = (await state.get_data()).get("remind_new")
     delete_list = (await state.get_data()).get("delete_dict")
-    id_delete_msg = (await state.get_data()).get("msg_remind_id")
     add_dict = (await state.get_data()).get("add_objects")
 
     db.sql_query(query=update(Remind).where(Remind.id == remind_id).values(name=remind_new["name"],
@@ -273,7 +276,9 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
                                     category_name=category_name_)
                            for category_name_ in add_dict["categories"]])
 
-    #await bot.delete_message(chat_id=query.from_user.id, message_id=id_delete_msg)
+    if await state.get_state() == ChangeRemind.check_sample:
+        id_delete_msg = (await state.get_data()).get("msg_remind_id")
+        await bot.delete_message(chat_id=query.from_user.id, message_id=id_delete_msg)
 
     await bot.send_message(chat_id=query.from_user.id, text=msg.EDIT_FINISH)
     await state.clear()
