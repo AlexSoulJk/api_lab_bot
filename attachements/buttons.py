@@ -27,6 +27,18 @@ EMOJI_FINISH_REMIND_URGENTLY = "\U000026D4"  # Эмодзи для "Заверш
 EMOJI_REMOVE_REMIND = "\U0001F5D1"  # Эмодзи для "Удалить"
 EMOJI_BACK_TO_REMIND_LIST = "\U0001F519"  # Эмодзи для "Вернуться к списку напоминаний"
 
+EMOJI_CLOSE_REMIND_LIST = "\U0001F4AC"  # Эмодзи для "Закрыть список напоминаний"
+EMOJI_BACK_TO_REMIND = "\U00002934"  # Эмодзи для "Вернуться к напоминанию"
+
+EMOJI_EDIT_NAME = "\U0001F4D6"  # Эмодзи для "Название"
+EMOJI_EDIT_DESCRIPTION = "\U0001F4DD"  # Эмодзи для "Описание"
+EMOJI_EDIT_DEADLINE = "\U0001F5D3"  # Эмодзи для "Дедлайн"
+EMOJI_EDIT_FILES = "\U0001F4CE"  # Эмодзи для "Прикреплённые файлы"
+EMOJI_EDIT_CATEGORIES = "\U0001F4D2"  # Эмодзи для "Категорию"
+EMOJI_EDIT_TYPE = "\U0001F4DD"  # Эмодзи для "Тип"
+
+EMOJI_ADD_FILES = "\U00002795"  # Эмодзи для "Добавить"
+
 # Ваши кнопки с добавленными эмодзи
 SHOW_FILES = [(f"{EMOJI_SHOW_FILES} Показать вложенные файлы", ShowFilesCallBack(action="show"))]
 EDIT_REMIND = [(f"{EMOJI_EDIT_REMIND} Изменить", EditRemindCallBack(action="edit"))]
@@ -36,23 +48,28 @@ BACK_TO_REMIND_LIST = [(f"{EMOJI_BACK_TO_REMIND_LIST} Вернуться к сп
 # Main remind menu
 REMIND_MENU_BAR = SHOW_FILES + EDIT_REMIND + FINISH_REMIND_URGENTLY + BACK_TO_REMIND_LIST + REMOVE_REMIND
 
-CLOSE_REMIND_LIST = [("Закрыть список напоминаний", CloseCallBack(action="close_list"))]
-BACK_TO_REMIND = [("Вернуться к напоминанию", BackButtonCallBack(action="back_to_remind"))]
+CLOSE_REMIND_LIST = [(f"{EMOJI_CLOSE_REMIND_LIST} Закрыть список напоминаний", CloseCallBack(action="close_list"))]
+BACK_TO_REMIND = [(f"{EMOJI_BACK_TO_REMIND} Вернуться к напоминанию", BackButtonCallBack(action="back_to_remind"))]
 
 # EDIT REMIND.---------------------------------------------------------------------------------------------
 # EDIT REMIND LIST
-EDIT_REMIND_LIST = [("Название", EditOptionCallBack(action="name")),
-                    ("Описание", EditOptionCallBack(action="description")),
-                    ("Дедлайн", EditOptionCallBack(action="date_deadline")),
-                    ("Прикреплённые файлы", EditOptionCallBack(action="files")),
-                    ("Категорию", EditOptionCallBack(action="categories")),
-                    ("Тип", EditOptionCallBack(action="type"))]
+EDIT_REMIND_LIST = [
+    (f"{EMOJI_EDIT_NAME} Название", EditOptionCallBack(action="name")),
+    (f"{EMOJI_EDIT_DESCRIPTION} Описание", EditOptionCallBack(action="description")),
+    (f"{EMOJI_EDIT_DEADLINE} Дедлайн", EditOptionCallBack(action="date_deadline")),
+    (f"{EMOJI_EDIT_FILES} Прикреплённые файлы", EditOptionCallBack(action="files")),
+    (f"{EMOJI_EDIT_CATEGORIES} Категорию", EditOptionCallBack(action="categories")),
+    (f"{EMOJI_EDIT_TYPE} Тип", EditOptionCallBack(action="type"))]
+
 # EDIT FILE LIST
-ADD_OR_DELETE = [("Удалить", EditFilesCallBack(action="delete")),
-                 ("Добавить", EditFilesCallBack(action="add"))]
-SUBMIT_DELETE = [("Удаление выбранное", EditOptionObject(is_touched=False, id=-1))]
+ADD_OR_DELETE = [(f"{EMOJI_REMOVE_REMIND}Удалить", EditFilesCallBack(action="delete")),
+                 (f"{EMOJI_ADD_FILES} Добавить", EditFilesCallBack(action="add"))]
+
+SUBMIT_DELETE = [("Удалить выбранное", EditOptionObject(is_touched=False, id=-1))]
+
 BACK_TO_EARLIER_REMIND = [("Вернуться к старому виду", BackButtonCallBack(action="back_into_early"))]
 BACK_TO_NEW_REMIND = [("Вернуться к новому виду", BackButtonCallBack(action="back_into_new"))]
+
 EDIT_MORE = [("Изменить ещё", EditRemindCallBack(action="edit_more"))]
 EDITING_FINISH = [("Завершить изменения", EditRemindCallBack(action="end"))]
 EDIT_PART_OF_MENU = EDIT_MORE + EDITING_FINISH
