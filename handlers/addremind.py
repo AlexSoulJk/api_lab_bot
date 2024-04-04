@@ -22,6 +22,7 @@ async def start_adding(message: Message, state: FSMContext):
     await state.update_data(user_name=user[0][0])
     await state.update_data(user_id=user[0][1])
     await state.update_data(list_remind_files=[])
+    await state.update_data(list_category=[])
     await message.answer(user[0][0] + ", " + msg.INPUT_REMIND_NAME)
     await state.set_state(AddRemind.add_name)
 
@@ -99,9 +100,6 @@ async def start_add_category(query: CallbackQuery, state: FSMContext, bot=Bot):
     category_list = (await state.get_data()).get("list_category")
     curr_state = await state.get_state()
 
-    if category_list is None:
-        category_list = []
-
     if curr_state == AddRemind.add_category:
         category_list.append(query.text)
     else:
@@ -145,7 +143,7 @@ async def adding_remind_end(query: CallbackQuery, state: FSMContext, bot: Bot):
     if not img:
         img = null()
 
-    id = await db.create_object(model=Remind(
+    id = db.create_object(model=Remind(
         name=name_,
         text=info["remind_description"],
         date_start=date_now,

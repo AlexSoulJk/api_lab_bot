@@ -21,6 +21,7 @@ import datetime
 router = Router()
 
 
+# TODO: Debug list_add key??????
 @router.callback_query(CheckRemind.check_remind,
                        EditRemindCallBack.filter(F.action == "edit"))
 @router.callback_query(ChangeRemind.choose_to_edit,
@@ -126,7 +127,7 @@ async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bo
     if is_add_one:
         await state.update_data(is_one_add=False)
         await bot.send_message(chat_id=query.from_user.id, text=msg.SHOW_SAMPLE,
-                                reply_markup=kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))
+                               reply_markup=kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))
 
     await state.set_state(ChangeRemind.check_sample)
 
@@ -204,7 +205,7 @@ async def check_sample(query: CallbackQuery, state: FSMContext, bot: Bot):
         await bot.delete_message(chat_id=query.from_user.id, message_id=id_to_delete)
 
     await bot.send_message(chat_id=query.from_user.id, text=msg.get_remind_text_(info["remind_new"],
-                                                                                 info["list_add"]["categories"]),
+                                                                                 info["add_objects"]["categories"]),
                            reply_markup=kb.get_keyboard(
                                btn.SHOW_FILES + btn.BACK_TO_EARLIER_REMIND + btn.EDIT_PART_OF_MENU))
     await state.update_data(is_new=True)
@@ -231,8 +232,9 @@ async def show_files(query: CallbackQuery, state: FSMContext, bot: Bot):
     remind = (await state.get_data()).get("remind_" + ("new", "tmp")[not is_new])
     add_files = ((await state.get_data()).get("add_list")["files"], None)[not is_new]
     await bot.edit_message_reply_markup(chat_id=query.from_user.id, message_id=query.message.message_id,
-                                        reply_markup=kb.get_smart_list(kb.get_files_list_of_btn(remind["files"], add_files),
-                                                                       btn.BACK_TO_REMIND))
+                                        reply_markup=kb.get_smart_list(
+                                            kb.get_files_list_of_btn(remind["files"], add_files),
+                                            btn.BACK_TO_REMIND))
     await state.update_data(is_new=not is_new)
 
 
@@ -261,17 +263,17 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
             db.sql_query(query=delete(File).where(File.id.in_(delete_id_files)), is_update=True)
 
     if len(add_dict["files"]):
-        db.create_objects([File(remind_id=id,
+        db.create_objects([File(remind_id=remind_id,
                                 file_name=file_name_,
                                 file_url=file_url_)
                            for file_name_, file_url_ in add_dict["files"]])
 
     if len(add_dict["categories"]):
-        db.create_objects([Category(remind_id=id,
+        db.create_objects([Category(remind_id=remind_id,
                                     category_name=category_name_)
                            for category_name_ in add_dict["categories"]])
 
-    await bot.delete_message(chat_id=query.from_user.id, message_id=id_delete_msg)
+    #await bot.delete_message(chat_id=query.from_user.id, message_id=id_delete_msg)
 
     await bot.send_message(chat_id=query.from_user.id, text=msg.EDIT_FINISH)
     await state.clear()

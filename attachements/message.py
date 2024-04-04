@@ -50,7 +50,7 @@ CHANGE_DICT = {"name": CHANGE_NAME,
 CHANGE_ADD_FILES = "Отправьте файл, который хотите прикрепить:"
 CHANGE_ADD_CATEGORIES = "Напишите категорию, которую хотите добавить для напоминания"
 CHANGE_DICT_ADDING_OBJ = {"files": CHANGE_ADD_FILES,
-                         "categories": CHANGE_ADD_CATEGORIES }
+                          "categories": CHANGE_ADD_CATEGORIES}
 CHANGE_DICT_OPTIONAL_OBJ = {"files": CHANGE_FILE_TO_DELETE,
                             "categories": CHANGE_CATEGORIES_TO_DELETE}
 #
@@ -69,6 +69,7 @@ CLOSE_CONFIRMED = "Ваше напоминание успешно закрыто
                   "Чтобы посмотреть список закрытых напоминаний вы можете написать /list_closed"
 CLOSE_SHOORING_MSG = "Вы уверены, что хотите завершить напоминание раньше?"
 
+
 # TODO: Поработать с оформлением текста в напоминании
 def get_remind_text(remind: Remind, categories):
     res = ""
@@ -85,19 +86,22 @@ def get_remind_text(remind: Remind, categories):
 
 
 def get_remind_text_(remind, add_list_categories=None):
-
+    # TODO: Добавить выравнивание по description
     res = ""
+    append = ""
 
-    if add_list_categories is None:
-        add_list_categories = []
+    if add_list_categories:
+        for tag in add_list_categories:
+            append += f"#{tag.replace(' ', '')} "
 
-    categories = remind["categories"] + add_list_categories
+    categories = remind["categories"]
 
     if categories:
         for tag, i in categories:
             res += f"#{tag.replace(' ', '')} "
+        res += append
     else:
-        res = "-"
+        res = ("-", append)[append != ""]
 
     return f"Title: {remind['name']}\n\n\n" \
            f"Text: {remind['description']}\n\n\n" \

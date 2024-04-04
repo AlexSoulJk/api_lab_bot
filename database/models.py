@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncAttrs
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, JSON, TIME
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, JSON, TIME, DateTime, Interval
 from sqlalchemy.orm import DeclarativeBase
 
 load_dotenv()
@@ -27,16 +27,15 @@ class Remind(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
     text = Column(String(100))
-    image_url = Column(String(100), nullable=True)
 
-    date_start = Column(Date, nullable=False, default=datetime.datetime.utcnow)
-    date_deadline = Column(Date, nullable=True)
+    date_start = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    date_deadline = Column(DateTime, nullable=False)
     date_finish = Column(Date, nullable=True)
-    date_is_delete = Column(Date, nullable=True)
+    date_is_delete = Column(DateTime, nullable=True)
+
+    interval = Column(Interval, nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
-    #TODO: JSON TYPE FOR CATEGORY OR ANOTHER TABLE?
-    type = Column(String(100))
 
 class File(Base):
     __tablename__ = 'file'

@@ -20,11 +20,19 @@ BACK = [("Вернуться к", BackButtonCallBack(action="back"))]
 TYPE_REMIND = [("Периодическое", RemindTypeCallBack(type="periodic")),
                ("Обычное", RemindTypeCallBack(type="common"))]
 # CHECK REMIND.--------------------------------------------------------------------------------------------
-SHOW_FILES = [("Показать вложенные файлы", ShowFilesCallBack(action="show"))]
-EDIT_REMIND = [("Изменить.", EditRemindCallBack(action="edit"))]
-FINISH_REMIND_URGENTLY = [("Завершить досрочно.", CloseCallBack(action="close_urgently"))]
-REMOVE_REMIND = [("Удалить.", CloseCallBack(action="remove_remind"))]
-BACK_TO_REMIND_LIST = [("Вернуться к списку напоминаний", BackButtonCallBack(action="back_to_remind_list"))]
+# Эмодзи для различных действий
+EMOJI_SHOW_FILES = "\U0001F4C1"  # Эмодзи для "Показать вложенные файлы"
+EMOJI_EDIT_REMIND = "\U0001F4DD"  # Эмодзи для "Изменить"
+EMOJI_FINISH_REMIND_URGENTLY = "\U000026D4"  # Эмодзи для "Завершить досрочно"
+EMOJI_REMOVE_REMIND = "\U0001F5D1"  # Эмодзи для "Удалить"
+EMOJI_BACK_TO_REMIND_LIST = "\U0001F519"  # Эмодзи для "Вернуться к списку напоминаний"
+
+# Ваши кнопки с добавленными эмодзи
+SHOW_FILES = [(f"{EMOJI_SHOW_FILES} Показать вложенные файлы", ShowFilesCallBack(action="show"))]
+EDIT_REMIND = [(f"{EMOJI_EDIT_REMIND} Изменить", EditRemindCallBack(action="edit"))]
+FINISH_REMIND_URGENTLY = [(f"{EMOJI_FINISH_REMIND_URGENTLY} Завершить досрочно", CloseCallBack(action="close_urgently"))]
+REMOVE_REMIND = [(f"{EMOJI_REMOVE_REMIND} Удалить", CloseCallBack(action="remove_remind"))]
+BACK_TO_REMIND_LIST = [(f"{EMOJI_BACK_TO_REMIND_LIST} Вернуться к списку напоминаний", BackButtonCallBack(action="back_to_remind_list"))]
 # Main remind menu
 REMIND_MENU_BAR = SHOW_FILES + EDIT_REMIND + FINISH_REMIND_URGENTLY + BACK_TO_REMIND_LIST + REMOVE_REMIND
 
