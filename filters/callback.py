@@ -66,3 +66,7 @@ class ClockCallback(CallbackData, prefix='inline_timepicker'):
     action: Optional[str] = None
     typo: Optional[str] = None
     data: Optional[int] = None
+
+
+class RemindPeriodicType(CallbackData, prefix="type_period"):
+    is_at_time: bool = False

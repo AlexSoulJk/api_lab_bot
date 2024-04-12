@@ -1,6 +1,6 @@
 from filters.callback import SkipCallback, ConfirmCallback, RemindTypeCallBack, BackButtonCallBack, \
     ShowFilesCallBack, EditRemindCallBack, EditFilesCallBack, CloseCallBack, EditOptionCallBack, CheckSampleRemind, \
-    EditOptionObject, ClockCallback
+    EditOptionObject, ClockCallback, RemindPeriodicType
 
 # ---------------------------------------------------------------------------------
 # Buttons
@@ -42,9 +42,11 @@ EMOJI_ADD_FILES = "\U00002795"  # Эмодзи для "Добавить"
 # Ваши кнопки с добавленными эмодзи
 SHOW_FILES = [(f"{EMOJI_SHOW_FILES} Показать вложенные файлы", ShowFilesCallBack(action="show"))]
 EDIT_REMIND = [(f"{EMOJI_EDIT_REMIND} Изменить", EditRemindCallBack(action="edit"))]
-FINISH_REMIND_URGENTLY = [(f"{EMOJI_FINISH_REMIND_URGENTLY} Завершить досрочно", CloseCallBack(action="close_urgently"))]
+FINISH_REMIND_URGENTLY = [
+    (f"{EMOJI_FINISH_REMIND_URGENTLY} Завершить досрочно", CloseCallBack(action="close_urgently"))]
 REMOVE_REMIND = [(f"{EMOJI_REMOVE_REMIND} Удалить", CloseCallBack(action="remove_remind"))]
-BACK_TO_REMIND_LIST = [(f"{EMOJI_BACK_TO_REMIND_LIST} Вернуться к списку напоминаний", BackButtonCallBack(action="back_to_remind_list"))]
+BACK_TO_REMIND_LIST = [
+    (f"{EMOJI_BACK_TO_REMIND_LIST} Вернуться к списку напоминаний", BackButtonCallBack(action="back_to_remind_list"))]
 # Main remind menu
 REMIND_MENU_BAR = SHOW_FILES + EDIT_REMIND + FINISH_REMIND_URGENTLY + BACK_TO_REMIND_LIST + REMOVE_REMIND
 
@@ -100,4 +102,18 @@ INCREASE_BUTTONS_HOURS = [('⯈', ClockCallback(action="change", typo="h", data=
                           ('⯈⯈', ClockCallback(action="change", typo="h", data=2)),
                           ('⯈⯈⯈', ClockCallback(action="change", typo="h", data=5))]
 
+TEXT_BUTTONS = ['⯇⯇⯇', '⯇⯇', '⯇', '⯈', '⯈⯈', '⯈⯈⯈']
+
+CHANGE_INTERVAL = [("год", ClockCallback(action="switch", typo="y", data=0)),
+                   ("месяц", ClockCallback(action="switch", typo="mo", data=1)),
+                   ("дни", ClockCallback(action="switch", typo="d", data=2)),
+                   ("часы", ClockCallback(action="switch", typo="h", data=3)),
+                   ("минуты", ClockCallback(action="switch", typo="m", data=4))]
+
 HOLE = [(" ", ClockCallback(action="nothing", typo="hole", data=2003))]
+
+REMIND_TYPE = [("В определённое время", RemindPeriodicType()),
+               ("Каждый постоянный период", RemindPeriodicType(is_at_time=True))]
+
+CHANGE_TIME = [("часы", ClockCallback(action="switch", typo="h", data=0)),
+               ("минуты", ClockCallback(action="switch", typo="m", data=1))]

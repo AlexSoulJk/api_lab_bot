@@ -1,5 +1,6 @@
 from aiogram.fsm.state import State, StatesGroup
 
+
 class WellCome(StatesGroup):
     start = State()
     change_name = State()
@@ -53,12 +54,18 @@ class ChangeRemind(StatesGroup):
 class RemoveRemind(StatesGroup):
     confirming = State()
 
+
 class CloseUrgently(StatesGroup):
     confirming = State()
 
+
 class TimePicker(StatesGroup):
     start = State()
+    time_start = State()
     interval_start = State()
+    start_ = State()
+    choose_type = State()
+
 
 class Calendary(StatesGroup):
     start = State()

@@ -68,8 +68,13 @@ REMOVE_CONFIRMED = " Ваше напоминание успешно удален
 CLOSE_CONFIRMED = "Ваше напоминание успешно закрыто!\n " \
                   "Чтобы посмотреть список закрытых напоминаний вы можете написать /list_closed"
 CLOSE_SHOORING_MSG = "Вы уверены, что хотите завершить напоминание раньше?"
+# Interval const
 
+INTERVAL_PREP = {False: ["через ", "в "],
+                 True: ["каждый ", "и "]}
 
+INTERVAL_SUCCSESS = {False: "Напомнить вам ",
+                     True: "Напоминать вам "}
 # TODO: Поработать с оформлением текста в напоминании
 def get_remind_text(remind: Remind, categories):
     res = ""

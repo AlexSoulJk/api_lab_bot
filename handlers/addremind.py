@@ -39,9 +39,11 @@ async def input_name(message: Message, state: FSMContext):
 
 @router.callback_query(AddRemind.add_deadline_time, ConfirmCallback.filter(F.confirm == True))
 async def date_confirmed(callback_query: CallbackQuery, state: FSMContext):
-        await callback_query.message.answer(msg.TRY_INPUT_REMIND_FILE,
-                             reply_markup=kb.get_keyboard(btn.CONFIRMING))
-        await state.set_state(AddRemind.try_add_file)
+    await callback_query.message.answer(msg.TRY_INPUT_REMIND_FILE,
+                                        reply_markup=kb.get_keyboard(btn.CONFIRMING))
+    await state.set_state(AddRemind.try_add_file)
+
+
 @router.callback_query(AddRemind.try_add_file,
                        ConfirmCallback.filter(F.confirm == True))
 async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
@@ -120,16 +122,26 @@ async def adding_remind_end(query: CallbackQuery, state: FSMContext, bot: Bot):
     name_ = info["remind_name"]
     user_id_ = info["user_id"]
     interval_time = info.get("interval_time_")
+    is_at_time = info.get("is_at_time")
 
     if not interval_time:
-        interval_time = null()
+        interval = null()
+        year = null()
+        month = null()
+        is_at_time = null()
+    else:
+        year, month, interval = interval_time
 
     id = db.create_object(model=Remind(
         name=name_,
         text=info["remind_description"],
         date_deadline=info["choosed_data"],
         user_id=user_id_,
-        interval=interval_time))
+        interval=interval,
+        ones_month=month,
+        ones_years=year,
+        is_at_time=is_at_time
+    ))
 
     db.create_objects([File(remind_id=id,
                             file_name=file_name_,
