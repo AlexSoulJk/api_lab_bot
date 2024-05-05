@@ -19,6 +19,9 @@ BACK = [("Вернуться к", BackButtonCallBack(action="back"))]
 # TYPE REMIND
 TYPE_REMIND = [("Периодическое", RemindTypeCallBack(type="periodic")),
                ("Обычное", RemindTypeCallBack(type="common"))]
+
+BACK_TO_START_DATE_OR_START_INTERVAL = [("Изменить дату для первого напоминания", BackButtonCallBack(action="back")),
+                                        ("Задать интервал для напоминания", BackButtonCallBack(action="to_interval"))]
 # CHECK REMIND.--------------------------------------------------------------------------------------------
 # Эмодзи для различных действий
 EMOJI_SHOW_FILES = "\U0001F4C1"  # Эмодзи для "Показать вложенные файлы"
@@ -117,3 +120,5 @@ REMIND_TYPE = [("В определённое время", RemindPeriodicType()),
 
 CHANGE_TIME = [("часы", ClockCallback(action="switch", typo="h", data=0)),
                ("минуты", ClockCallback(action="switch", typo="m", data=1))]
+
+MARKED_AS_READ = [("Отметить как прочитанное", ConfirmCallback(confirm=True))]

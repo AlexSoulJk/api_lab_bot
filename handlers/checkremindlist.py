@@ -18,16 +18,26 @@ router = Router()
 
 
 @router.message(Command(commands="check"))
+@router.message(Command(commands="check_daily"))
 async def start_adding(message: Message, state: FSMContext):
 
     user = db.sql_query(query=select(User.name, User.id).where(
         User.user_id == str(message.from_user.id)), is_single=False)
 
     user_id_ = user[0][1]
+    remind_list = []
+    if message.text == "/check":
+        remind_list = db.sql_query(query=select(Remind.name, Remind.id).where(
+            Remind.user_id == user_id_).where(Remind.date_finish == null()).where(
+            Remind.date_is_delete == null()).order_by(desc(Remind.date_deadline)), is_single=False)
+    elif message.text == "/check_daily":
+        remind_list = db.sql_query(query=select(Remind).where(
+            Remind.user_id == user_id_).where(
+            Remind.date_deadline - datetime.datetime.now() < datetime.timedelta(days=1)).where(
+            Remind.date_finish == null()), is_single=False)
 
-    remind_list = db.sql_query(query=select(Remind.name, Remind.id).where(
-        Remind.user_id == user_id_).where(Remind.date_finish == null()).where(
-        Remind.date_is_delete == null()).order_by(desc(Remind.date_deadline)), is_single=False)
+
+
     remind_list_btn = kb.get_remind_list_of_btn(remind_list)
     await state.update_data(user_name=user[0][0])
     await state.update_data(cur_chunk=1)

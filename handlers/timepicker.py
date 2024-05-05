@@ -12,10 +12,15 @@ from attachements import clock as c
 
 router = Router()
 
+# TODO: Изменить дефолтное время при установке даты.
+# TODO: При добавлении через постоянный интервал не меняется введённый интервал.
+# TODO: Странно выводится кнопка, на которой 3 символа.
+
 
 @router.callback_query(Calendary.start, ConfirmCallback.filter(F.confirm == True))
 @router.callback_query(AddRemind.add_deadline_time, ConfirmCallback.filter(F.confirm == False))
 async def set_time_start(message: Message, state: FSMContext, bot: Bot):
+    await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
     date = (await state.get_data()).get("choosed_data")
     but_, interval = c.get_clock_(current_key="h",
                                   is_today=(datetime.datetime.now() - date) < datetime.timedelta(days=1),
@@ -23,6 +28,7 @@ async def set_time_start(message: Message, state: FSMContext, bot: Bot):
     hours, minutes = interval.get_time()
     date = date.replace(hour=hours,
                         minute=minutes)
+
     await state.update_data(buttons=but_)
     await state.update_data(choosed_interval=interval)
     await state.update_data(choosed_data=date)
@@ -48,6 +54,8 @@ async def time_handler(query: CallbackQuery, callback_data: ClockCallback, state
                                                         current_time=cur_time,
                                                         callback_data=callback_data)
 
+    is_start_date = (await state.get_data()).get("is_start_date")
+
     if flag:
         await bot.edit_message_text(chat_id=query.from_user.id,
                                     text="Выбранное время: " + cur_time.strftime("%d-%m-%y %H:%M") + ". " +
@@ -55,11 +63,17 @@ async def time_handler(query: CallbackQuery, callback_data: ClockCallback, state
                                     message_id=query.message.message_id,
                                     reply_markup=(kb.get_keyboard(btn.CONFIRMING),
                                                   kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))[is_changing])
+
         if is_changing:
             remind = (await state.get_data()).get("remind_new")
             cur_change = (await state.get_data()).get("cur_change")
             remind[cur_change] = cur_time
             await state.update_data(remind_new=remind)
+
+        if is_start_date and not is_changing:
+            await state.update_data(date_start=cur_time)
+        elif not is_start_date and not is_changing:
+            await state.update_data(date_deadline=cur_time)
 
         await state.set_state((AddRemind.add_deadline_time,
                                ChangeRemind.check_sample)[is_changing])
@@ -99,15 +113,6 @@ async def switch_time_handler(query: CallbackQuery, callback_data: ClockCallback
                                                                     callback_data.typo),
                                 reply_markup=but.as_markup(),
                                 parse_mode="HTML")
-
-
-@router.callback_query(AddRemind.end, ConfirmCallback.filter(F.confirm == False))
-@router.callback_query(AddRemind.add_type, RemindTypeCallBack.filter(F.type != "common"))
-async def test_interval_starting(query: CallbackQuery, state: FSMContext, bot: Bot):
-    await bot.send_message(chat_id=query.from_user.id,
-                           text="Выберите нужный интервал",
-                           reply_markup=kb.get_keyboard(btn.REMIND_TYPE))
-    await state.set_state(TimePicker.choose_type)
 
 
 @router.callback_query(TimePicker.choose_type, RemindPeriodicType.filter())
