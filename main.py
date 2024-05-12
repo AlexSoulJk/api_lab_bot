@@ -1,9 +1,11 @@
+import datetime
 import logging
 import os
 
 import aiogram
 import asyncio
-
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from scedular import aschedular as sc
 from dotenv import load_dotenv
 from handlers import Any, welcom, info, addremind, calendary_ex, checkremindlist, change, remove_remind, urgently_finish
 from handlers import timepicker
@@ -25,10 +27,16 @@ commands = [
     {"command": "add", "description": "Добавить напоминание"},
     {"command": "check", "description": "Просмотреть список напоминаний"},
     {"command": "check_daily", "description": "Просмотреть список напоминаний на этот день"},
+    {"command": "check_ended", "description": "Просмотреть список, недавно завершённых, напоминаний"},
 ]
 async def main():
 
-
+    # scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    # scheduler.add_job(sc.send_messages_interval_at_time, trigger="interval",
+    #                   seconds=60, kwargs={"bot": bot})
+    # scheduler.add_job(sc.send_messages_interval_not_at_time, trigger="interval",
+    #                   seconds=60, kwargs={"bot": bot})
+    # scheduler.start()
     # Устанавливаем команды для бота
     await bot.set_my_commands(commands)
     try:

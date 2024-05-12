@@ -1,5 +1,6 @@
 import calendar
 from datetime import datetime
+from typing import Optional
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types import CallbackQuery
@@ -12,10 +13,13 @@ from .config import YEAR_SIZE
 class DialogCalendar(GenericCalendar):
     ignore_callback = DialogCalendarCallback(act=DialogCalAct.ignore).pack()  # placeholder for no answer buttons
 
-    async def _get_month_kb(self, year: int):
+    async def _get_month_kb(self, year: int, start_date: Optional[datetime] = None):
         """Creates an inline keyboard with months for specified year"""
-
         today = datetime.now()
+
+        if start_date:
+            today = start_date
+
         now_month, now_year = today.month, today.year
         now_year = today.year
 
@@ -62,10 +66,14 @@ class DialogCalendar(GenericCalendar):
         kb.append(month_b[1])
         return InlineKeyboardMarkup(row_width=6, inline_keyboard=kb)
 
-    async def _get_days_kb(self, year: int, month: int):
+    async def _get_days_kb(self, year: int, month: int, start_date: Optional[datetime] = None):
         """Creates an inline keyboard with calendar days of month for specified year and month"""
 
         today = datetime.now()
+
+        if start_date:
+            today = start_date
+
         now_weekday = self._labels.days_of_week[today.weekday()]
         now_month, now_year, now_day = today.month, today.year, today.day
 
@@ -147,9 +155,12 @@ class DialogCalendar(GenericCalendar):
             self,
             year: int = datetime.now().year,
             month: int = None,
+            year_start: int = None
     ) -> InlineKeyboardMarkup:
+
         today = datetime.now()
-        now_year = today.year
+
+        now_year = (today.year, year_start)[year_start is not None]
 
         if month:
             return await self._get_days_kb(year, month)
@@ -183,22 +194,29 @@ class DialogCalendar(GenericCalendar):
         kb.append(nav_row)
         return InlineKeyboardMarkup(row_width=YEAR_SIZE, inline_keyboard=kb)
 
-    async def process_selection(self, query: CallbackQuery, data: DialogCalendarCallback) -> tuple:
+    async def process_selection(self, query: CallbackQuery,
+                                data: DialogCalendarCallback,
+                                start_date: Optional[datetime] = None) -> tuple:
         return_data = (False, None)
         if data.act == DialogCalAct.ignore:
             await query.answer(cache_time=60)
         if data.act == DialogCalAct.set_y:
-            await query.message.edit_reply_markup(reply_markup=await self._get_month_kb(int(data.year)))
+            await query.message.edit_reply_markup(reply_markup=await self._get_month_kb(int(data.year), start_date))
         if data.act == DialogCalAct.prev_y:
             new_year = int(data.year) - YEAR_SIZE
-            await query.message.edit_reply_markup(reply_markup=await self.start_calendar(year=new_year))
+            await query.message.edit_reply_markup(reply_markup=await self.start_calendar(year=new_year,
+                                                                                         year_start=start_date.year))
         if data.act == DialogCalAct.next_y:
             new_year = int(data.year) + YEAR_SIZE
-            await query.message.edit_reply_markup(reply_markup=await self.start_calendar(year=new_year))
+            await query.message.edit_reply_markup(reply_markup=await self.start_calendar(year=new_year,
+                                                                                         year_start=start_date.year))
         if data.act == DialogCalAct.start:
-            await query.message.edit_reply_markup(reply_markup=await self.start_calendar(int(data.year)))
+            await query.message.edit_reply_markup(reply_markup=await self.start_calendar(int(data.year),
+                                                                                         year_start=start_date.year))
         if data.act == DialogCalAct.set_m:
-            await query.message.edit_reply_markup(reply_markup=await self._get_days_kb(int(data.year), int(data.month)))
+            await query.message.edit_reply_markup(reply_markup=await self._get_days_kb(int(data.year),
+                                                                                       int(data.month),
+                                                                                       start_date))
         if data.act == DialogCalAct.day:
             return await self.process_day_select(data, query)
 

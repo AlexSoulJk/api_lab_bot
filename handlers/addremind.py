@@ -1,5 +1,4 @@
 from aiogram.filters import Command
-from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from filters.states import AddRemind
 from aiogram import Router, Bot, F, types
@@ -10,9 +9,10 @@ from filters.callback import ConfirmCallback, RemindTypeCallBack
 from aiogram.types import Message, CallbackQuery, BufferedInputFile, FSInputFile, InputMediaPhoto
 from database.db import db
 from database.models import User, File, Remind, Category
-from sqlalchemy import select, update, null, desc
+from sqlalchemy import select, null, desc
 
 router = Router()
+
 
 # TODO: При добавлении напоминаний удалить сообщение с типом напоминания И подтверждение.
 @router.message(Command(commands="add"))
@@ -35,11 +35,20 @@ async def input_name(message: Message, state: FSMContext):
     await state.update_data(remind_name=message.text)
     await state.set_state(AddRemind.add_description)
 
+
 @router.message(AddRemind.add_description)
+@router.callback_query(AddRemind.add_type, ConfirmCallback.filter(F.confirm == False))
 async def add_category_finish(query: CallbackQuery, state: FSMContext, bot=Bot):
-    await state.update_data(remind_description=query.text)
+
+    if await state.get_state() == AddRemind.add_description:
+        await state.update_data(remind_description=query.text)
+    else:
+        await bot.delete_message(chat_id=query.from_user.id,
+                                 message_id=query.message.message_id)
+
     await bot.send_message(chat_id=query.from_user.id, text=msg.INPUT_TYPE_OF_REMIND,
                            reply_markup=kb.get_keyboard(btn.TYPE_REMIND))
+
     await state.set_state(AddRemind.add_type)
 
 
@@ -51,37 +60,33 @@ async def confirming_adding_type(query: CallbackQuery, callback_data: RemindType
     await state.update_data(remind_type=callback_data.type)
     await state.update_data(is_start_date=True)
 
+
 ## goto calendary handler
 
 
-@router.callback_query(AddRemind.add_deadline_time, ConfirmCallback.filter(F.confirm == True))
+@router.callback_query(AddRemind.add_deadline_end, ConfirmCallback.filter(F.confirm == True))
 async def date_confirmed(query: CallbackQuery, state: FSMContext, bot: Bot):
     id_to_del = (await state.get_data()).get("id_delete_msg")
-    remind_type = (await state.get_data()).get("remind_type")
-    is_start_date = (await state.get_data()).get("is_start_date")
+    id_calendary = (await state.get_data()).get("id_msg_calendary")
+
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
+    await bot.delete_message(chat_id=query.from_user.id, message_id=id_calendary)
 
     if id_to_del:
         await bot.delete_message(chat_id=query.from_user.id, message_id=id_to_del)
 
-    if remind_type == "common":
-        await bot.send_message(chat_id=query.from_user.id,
-                               text=msg.TRY_INPUT_REMIND_FILE,
-                               reply_markup=kb.get_keyboard(btn.CONFIRMING))
-        await state.set_state(AddRemind.try_add_file)
-    elif remind_type != "common" and not is_start_date:
-        start_date = (await state.get_data()).get("start_date")
-        await bot.send_message(chat_id=query.from_user.id,
-                               text=msg.MSG_SHOORING_IN_PERIODIC_START_DATE + start_date.strftime("%d-%m-%y %H:%M"),
-                               reply_markup=kb.get_keyboard(btn.BACK_TO_START_DATE_OR_START_INTERVAL))
-        await state.set_state(AddRemind.interval_start)
+    date_deadline = (await state.get_data()).get("date_deadline")
 
-    elif remind_type != "common" and is_start_date:
+    if date_deadline is None:
+        date_deadline = (await state.get_data()).get("date_start")
 
-    else:
-        await state.update_data(is_start_date=False)
+    await bot.send_message(chat_id=query.from_user.id,
+                           text=f'Вы выбрали в качестве дедлайна дату: {date_deadline.strftime("%Y-%m-%d %H:%M")}.')
 
-
+    await bot.send_message(chat_id=query.from_user.id,
+                           text=msg.TRY_INPUT_REMIND_FILE,
+                           reply_markup=kb.get_keyboard(btn.CONFIRMING))
+    await state.set_state(AddRemind.try_add_file)
 
 
 @router.callback_query(AddRemind.try_add_file,
@@ -136,47 +141,36 @@ async def start_add_category(query: CallbackQuery, state: FSMContext, bot=Bot):
     await state.set_state(AddRemind.try_add_category)
 
 
-# @router.callback_query(AddRemind.try_add_category,
-#                        ConfirmCallback.filter(F.confirm == False))
-# @router.callback_query(AddRemind.end, ConfirmCallback.filter(F.confirm == False))
-# async def add_category_finish(query: CallbackQuery, state: FSMContext, bot=Bot):
-#     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
-#     await bot.send_message(chat_id=query.from_user.id, text=msg.INPUT_TYPE_OF_REMIND,
-#                            reply_markup=kb.get_keyboard(btn.TYPE_REMIND))
-#     await state.set_state(AddRemind.add_type)
-
-
-@router.callback_query(AddRemind.try_add_category, ConfirmCallback.filter(F.confirm ==  False))
+@router.callback_query(AddRemind.try_add_category, ConfirmCallback.filter(F.confirm == False))
 async def adding_remind_end(query: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     await bot.send_message(chat_id=query.from_user.id, text=msg.ADDING_FINISH)
-    # TODO: Добавление в бд.
     info = await state.get_data()
 
     name_ = info["remind_name"]
     user_id_ = info["user_id"]
     interval_time = info.get("interval_time_")
-    is_at_time = info.get("is_at_time")
-    date_last_notificated = info.get("test_date_curr")
+    date_last_notificated = info.get("date_start")
+    date_deadline = info.get("date_deadline")
+
+    if not date_deadline:
+        date_deadline = date_last_notificated
 
     if not interval_time:
         interval = null()
         year = null()
         month = null()
-        is_at_time = null()
-        date_last_notificated = null()
     else:
         year, month, interval = interval_time
 
     id = db.create_object(model=Remind(
         name=name_,
         text=info["remind_description"],
-        date_deadline=info["choosed_data"],
+        date_deadline=date_deadline,
         user_id=user_id_,
         interval=interval,
         ones_month=month,
         ones_years=year,
-        is_at_time=is_at_time,
         date_last_notificate=date_last_notificated
     ))
 

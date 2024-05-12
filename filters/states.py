@@ -11,6 +11,7 @@ class AddRemind(StatesGroup):
     add_description = State()
     add_deadline = State()
     add_deadline_time = State()
+    add_deadline_end = State()
     try_add_file = State()
     add_file = State()
     try_add_pic = State()
@@ -19,6 +20,7 @@ class AddRemind(StatesGroup):
     try_add_category = State()
     add_type = State()
     interval_start = State()
+    interval_finish = State()
     end = State()
 
 

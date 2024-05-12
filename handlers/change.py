@@ -16,7 +16,7 @@ from filters.states import CheckRemind, ChangeRemind
 
 router = Router()
 
-
+# TODO: Добавить изменение типа напоминания
 @router.callback_query(CheckRemind.check_remind,
                        EditRemindCallBack.filter(F.action == "edit"))
 @router.callback_query(ChangeRemind.choose_to_edit,

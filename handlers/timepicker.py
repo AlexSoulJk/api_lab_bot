@@ -1,9 +1,10 @@
 from aiogram import Router, Bot, F
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from attachements import keyboard as kb
 from attachements import buttons as btn
 from attachements import message as msg
-from filters.callback import ConfirmCallback, RemindTypeCallBack, RemindPeriodicType
+from filters.callback import ConfirmCallback, RemindTypeCallBack, RemindPeriodicType, BackButtonCallBack
 from filters.states import TimePicker, AddRemind, Calendary, ChangeRemind
 import datetime
 from aiogram.fsm.context import FSMContext
@@ -12,31 +13,43 @@ from attachements import clock as c
 
 router = Router()
 
-# TODO: Изменить дефолтное время при установке даты.
-# TODO: При добавлении через постоянный интервал не меняется введённый интервал.
-# TODO: Странно выводится кнопка, на которой 3 символа.
-
 
 @router.callback_query(Calendary.start, ConfirmCallback.filter(F.confirm == True))
 @router.callback_query(AddRemind.add_deadline_time, ConfirmCallback.filter(F.confirm == False))
+@router.callback_query(AddRemind.add_deadline_end, ConfirmCallback.filter(F.confirm == False))
+@router.callback_query(AddRemind.interval_start, ConfirmCallback.filter(F.confirm == False))
 async def set_time_start(message: Message, state: FSMContext, bot: Bot):
-    await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
+    curr_state = await state.get_state()
     date = (await state.get_data()).get("choosed_data")
-    but_, interval = c.get_clock_(current_key="h",
-                                  is_today=(datetime.datetime.now() - date) < datetime.timedelta(days=1),
-                                  is_time=True)
-    hours, minutes = interval.get_time()
-    date = date.replace(hour=hours,
-                        minute=minutes)
+    if curr_state == Calendary.start:
+        await bot.edit_message_reply_markup(chat_id=message.from_user.id,
+                                            message_id=message.message.message_id,
+                                            reply_markup=None)
+        # print(message.message.text)
+        await bot.edit_message_text(chat_id=message.from_user.id,
+                                    message_id=message.message.message_id,
+                                    text=message.message.text.replace("Подтвердить введённую дату?", ""))
+        await state.update_data(id_msg_calendary=message.message.message_id)
+
+    elif curr_state in [AddRemind.add_deadline_time, AddRemind.add_deadline_end, AddRemind.interval_start]:
+        await bot.delete_message(chat_id=message.from_user.id,
+                                 message_id=message.message.message_id)
+        date.replace(hour=0,
+                     minute=0)
+
+    # await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
+
+    but_, interval, date = c.get_clock_(is_time=True,
+                                        date_start=date,
+                                        next_time_to_remind=(await state.get_data()).get("next_remind_time"))
 
     await state.update_data(buttons=but_)
     await state.update_data(choosed_interval=interval)
     await state.update_data(choosed_data=date)
 
     await bot.send_message(chat_id=message.from_user.id,
-                           text=c.create_current_info_for_time(date,
-                                                               interval,
-                                                               "h"),
+                           text='<b>Выберите время</b>\n'
+                                + c.create_current_info_for_time(date, "h"),
                            reply_markup=c.get_keyboard_clock(but_, adjust_=(1,)).as_markup(),
                            parse_mode="HTML")
 
@@ -58,11 +71,14 @@ async def time_handler(query: CallbackQuery, callback_data: ClockCallback, state
 
     if flag:
         await bot.edit_message_text(chat_id=query.from_user.id,
-                                    text="Выбранное время: " + cur_time.strftime("%d-%m-%y %H:%M") + ". " +
+                                    text=f"Выбранное время для {('дедлайна', 'начального')[is_start_date]} напоминания: "
+                                         + cur_time.strftime("%H:%M") + ". " +
                                          ("", msg.SHOW_SAMPLE)[is_changing],
                                     message_id=query.message.message_id,
                                     reply_markup=(kb.get_keyboard(btn.CONFIRMING),
                                                   kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))[is_changing])
+
+        remind_type = (await state.get_data()).get("remind_type")
 
         if is_changing:
             remind = (await state.get_data()).get("remind_new")
@@ -75,8 +91,12 @@ async def time_handler(query: CallbackQuery, callback_data: ClockCallback, state
         elif not is_start_date and not is_changing:
             await state.update_data(date_deadline=cur_time)
 
-        await state.set_state((AddRemind.add_deadline_time,
-                               ChangeRemind.check_sample)[is_changing])
+        if remind_type == "common":
+            await state.set_state((AddRemind.add_deadline_end, ChangeRemind.check_sample)[is_changing])
+        elif remind_type != "common" and is_start_date:
+            await state.set_state(AddRemind.interval_start)
+        else:
+            await state.set_state(AddRemind.add_deadline_end)
     else:
         c.update_keyboard(interval, callback_data.typo, but_)
         but = c.get_keyboard_clock(but_, adjust_=(1,))
@@ -85,7 +105,6 @@ async def time_handler(query: CallbackQuery, callback_data: ClockCallback, state
                                     message_id=query.message.message_id,
                                     text='<b>Выберите время</b>\n' +
                                          c.create_current_info_for_time(cur_time,
-                                                                        interval,
                                                                         callback_data.typo),
                                     reply_markup=but.as_markup(),
                                     parse_mode="HTML")
@@ -109,34 +128,39 @@ async def switch_time_handler(query: CallbackQuery, callback_data: ClockCallback
                                 message_id=query.message.message_id,
                                 text='<b>Выберите время</b>\n' +
                                      c.create_current_info_for_time(cur_time,
-                                                                    interval,
                                                                     callback_data.typo),
                                 reply_markup=but.as_markup(),
                                 parse_mode="HTML")
 
 
-@router.callback_query(TimePicker.choose_type, RemindPeriodicType.filter())
-async def test_interval_start(query: CallbackQuery, callback_data: RemindPeriodicType, state: FSMContext, bot: Bot):
-    date_start = datetime.datetime.now()
-    date_finish = (await state.get_data()).get("choosed_data")
-    test_curr = (date_start.replace(hour=0, minute=0), date_start)[callback_data.is_at_time]
+@router.callback_query(AddRemind.interval_start, ConfirmCallback.filter(F.confirm == True))
+@router.callback_query(AddRemind.interval_finish, ConfirmCallback.filter(F.confirm == False))
+async def test_interval_start(query: CallbackQuery, state: FSMContext, bot: Bot):
+    curr_state = await state.get_state()
+    date_start = (await state.get_data()).get("date_start")
 
-    but_, interval = c.get_clock_("h", is_periodic_less_day=callback_data.is_at_time,
-                                  finish_date=date_finish, current_date=test_curr)
+    if curr_state == AddRemind.interval_start:
+        await bot.delete_message(chat_id=query.from_user.id,
+                                 message_id=(await state.get_data()).get("id_msg_calendary"))
+        await bot.send_message(chat_id=query.from_user.id,
+                               text=f'Вы выбрали в качестве начальной даты: {date_start.strftime("%Y-%m-%d %H:%M")}.')
+
+    await bot.delete_message(chat_id=query.from_user.id,
+                             message_id=query.message.message_id)
+
+    but_, interval, date_start = c.get_clock_(date_start=date_start)
 
     await state.update_data(buttons=but_)
-    await state.update_data(test_date=date_start)
-    await state.update_data(test_date_curr=test_curr)
+    await state.update_data(next_remind_time=date_start)
     await state.update_data(interval_curr=interval)
-    await state.update_data(is_at_time=callback_data.is_at_time)
-    await state.update_data(date_finish=date_finish)
     await state.update_data(current_index=3)
+    await state.update_data(is_start_date=False)
+
     await bot.send_message(chat_id=query.from_user.id,
                            text='<b>Выберите время</b>\n' + c.create_current_info(date_start,
-                                                                                  test_curr,
+                                                                                  date_start,
                                                                                   interval,
-                                                                                  "h",
-                                                                                  is_less_day=callback_data.is_at_time),
+                                                                                  "h"),
                            reply_markup=c.get_keyboard_clock(but_).as_markup(),
                            parse_mode="HTML")
 
@@ -146,28 +170,30 @@ async def test_interval_start(query: CallbackQuery, callback_data: RemindPeriodi
 @router.callback_query(TimePicker.start_, ClockCallback.filter(F.action == "change"))
 @router.callback_query(TimePicker.start_, ClockCallback.filter(F.action == 'success'))
 async def cb_handler_interval_change(query: CallbackQuery, callback_data: ClockCallback, state: FSMContext, bot: Bot):
-    start_time = (await state.get_data()).get("test_date")
-    date_curr = (await state.get_data()).get("test_date_curr")
+    start_time = (await state.get_data()).get("date_start")
+    date_curr = (await state.get_data()).get("next_remind_time")
     interval = (await state.get_data()).get("interval_curr")
-    is_at_time = (await state.get_data()).get("is_at_time")
     but_ = (await state.get_data()).get("buttons")
-    date_finish = (await state.get_data()).get("date_finish")
 
     interval, handle_result, flag = c.handle_interval_change(interval=interval,
                                                              current_time=date_curr,
                                                              callback_data=callback_data)
+    if interval.is_zero() and flag:
+        return
 
     if flag:
-        prep = msg.INTERVAL_PREP[is_at_time]
         date, time = interval.to_string()
         await bot.edit_message_text(chat_id=query.from_user.id,
-                                    text=msg.INTERVAL_SUCCSESS[is_at_time] +
-                                         prep[0] + date + prep[1] + time + " период?",
+                                    text=msg.INTERVAL_MSG + date + time,
                                     message_id=query.message.message_id, reply_markup=kb.get_keyboard(btn.CONFIRMING))
         await state.update_data(interval_time_=interval.to_database())
-        await state.set_state(AddRemind.end)
+        await state.set_state(AddRemind.interval_finish)
+
     else:
-        c.update_keyboard(interval, callback_data.typo, but_, date_finish, handle_result)
+        c.update_keyboard(interval,
+                          callback_data.typo,
+                          but_)
+
         but = c.get_keyboard_clock(but_)
         await state.update_data(buttons=but_)
         await bot.edit_message_text(chat_id=query.from_user.id,
@@ -176,26 +202,22 @@ async def cb_handler_interval_change(query: CallbackQuery, callback_data: ClockC
                                          c.create_current_info(start_time,
                                                                handle_result,
                                                                interval,
-                                                               callback_data.typo,
-                                                               is_less_day=is_at_time),
+                                                               callback_data.typo),
                                     reply_markup=but.as_markup(),
                                     parse_mode="HTML")
 
-    await state.update_data(test_date_curr=handle_result)
+    await state.update_data(next_remind_time=handle_result)
     await state.update_data(interval_curr=interval)
 
 
 @router.callback_query(TimePicker.start_, ClockCallback.filter(F.action == "switch"))
 async def cb_handler_interval_(query: CallbackQuery, callback_data: ClockCallback, state: FSMContext, bot: Bot):
-    start_time = (await state.get_data()).get("test_date")
-    date_curr = (await state.get_data()).get("test_date_curr")
+    start_time = (await state.get_data()).get("date_start")
+    date_curr = (await state.get_data()).get("next_remind_time")
     but_ = (await state.get_data()).get("buttons")
-    is_at_time = (await state.get_data()).get("is_at_time")
     interval = (await state.get_data()).get("interval_curr")
-    date_finish = (await state.get_data()).get("date_finish")
 
-    current_index = c.update_keyboard_switch(interval, callback_data.data, but_, finish_date=date_finish,
-                                             current_date=date_curr)
+    current_index = c.update_keyboard_switch(interval, callback_data.data, but_)
 
     but = c.get_keyboard_clock(but_)
     await state.update_data(buttons=but_)
@@ -206,8 +228,7 @@ async def cb_handler_interval_(query: CallbackQuery, callback_data: ClockCallbac
                                      c.create_current_info(start_time,
                                                            date_curr,
                                                            interval,
-                                                           callback_data.typo,
-                                                           is_less_day=is_at_time),
+                                                           callback_data.typo),
                                 reply_markup=but.as_markup(),
                                 parse_mode="HTML")
 

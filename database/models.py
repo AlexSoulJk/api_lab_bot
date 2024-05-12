@@ -40,7 +40,6 @@ class Remind(Base):
     date_is_delete = Column(DateTime, nullable=True)
 
     interval = Column(Interval, nullable=True)
-    is_at_time = Column(Boolean, nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
 
