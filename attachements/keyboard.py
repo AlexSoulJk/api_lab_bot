@@ -3,7 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from filters.callback import RemindListCallBack, ButLeftRightCallBack, FilesListCallBack, EditOptionObject
 
-PER_IN_CHUNK_REMIND_LIST = 2
+PER_IN_CHUNK_REMIND_LIST = 10
 NEXT_CHUNK = "⯈ "
 PAST_CHUNK = " ⯇"
 

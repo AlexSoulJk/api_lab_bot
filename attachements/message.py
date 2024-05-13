@@ -38,7 +38,7 @@ ADDING_FINISH = "Ваше напоминание успешно добавлен
 
 # -------------------------------------------------------------------------
 # Check remind list
-CHECK_START = " это список сделанных вами напоминаний:"
+CHECK_START = " это список добавленных напоминаний:"
 CHECK_DAILY_START = " это список напоминаний, которые нужно завершить в течение этого дня."
 CHECK_END = "До свидания, "
 
@@ -81,6 +81,8 @@ INTERVAL_PREP = ["через ", "и "]
 
 INTERVAL_SUCCSESS = {False: "Напомнить вам ",
                      True: "Напоминать вам "}
+
+
 # TODO: Поработать с оформлением текста в напоминании
 def get_remind_text(remind: Remind, categories):
     res = ""
@@ -90,10 +92,11 @@ def get_remind_text(remind: Remind, categories):
     else:
         res = "-"
 
-    return f"Title: {remind.name}\n\n\n" \
-           f"Text: {remind.text}\n\n\n" \
-           f"Deadline: {remind.date_deadline.strftime('%Y-%m-%d')}\n" \
-           f"Category: " + res
+    return f"<b>Название</b>: {remind.name}\n\n\n" \
+           f"<b>Описание</b>: {remind.text}\n\n\n" \
+           f"<b>Следующие напоминание</b>: {remind.date_last_notificate.strftime('%Y-%m-%d %H:%M')}" \
+           f"\n{('','<b>Окончание напоминаний:</b>' + remind.date_last_notificate.strftime('%Y-%m-%d %H:%M'))[remind.date_last_notificate != remind.date_deadline]}\n" \
+           f"<b>Категории</b>: " + res
 
 
 def get_remind_text_(remind, add_list_categories=None):
@@ -114,7 +117,16 @@ def get_remind_text_(remind, add_list_categories=None):
     else:
         res = ("-", append)[append != ""]
 
-    return f"Title: {remind['name']}\n\n\n" \
-           f"Text: {remind['description']}\n\n\n" \
-           f"Deadline: {remind['date_deadline'].strftime('%Y-%m-%d')}\n" \
-           f"Category: " + res
+    interval_info = remind['interval']
+    if interval_info is not None:
+        tmp = interval_info.to_string()
+        interval_info = f'<b>Окончание напоминаний</b>: {remind["date_deadline"].strftime("%Y-%m-%d %H:%M")}\n' \
+                        f'<b>Период повторения</b>: {tmp[0] + tmp[1]}\n'
+    else:
+        interval_info = ""
+
+    return f"<b>Название</b>: {remind['name']}\n\n\n" \
+           f"<b>Описание</b>: {remind['description']}\n\n\n" \
+           f"<b>Следующие напоминание</b>: {remind['date_last_notificate'].strftime('%Y-%m-%d %H:%M')}\n" \
+           f"{interval_info}" \
+           f"<b>Category</b>: " + res

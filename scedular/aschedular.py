@@ -39,7 +39,8 @@ async def send_messages_interval_at_time(bot: Bot):
                                        "date_deadline": remind[4],
                                        "categories": categories
                                    }),
-                                   reply_markup=kb.get_keyboard(btn.MARKED_AS_READ))
+                                   reply_markup=kb.get_keyboard(btn.MARKED_AS_READ),
+                                   parse_mode="HTML")
             db.sql_query(
                 query=update(Remind).where(Remind.id == remind[0]).values(
                     date_last_notificate=curr_time.replace(year=curr_year + remind[6],
@@ -78,7 +79,8 @@ async def send_messages_interval_not_at_time(bot: Bot):
                                        "date_deadline": remind[4],
                                        "categories": categories
                                    }),
-                                   reply_markup=kb.get_keyboard(btn.MARKED_AS_READ))
+                                   reply_markup=kb.get_keyboard(btn.MARKED_AS_READ),
+                                   parse_mode="HTML")
             db.sql_query(
                 query=update(Remind).where(Remind.id == remind[0]).values(
                     date_last_notificate=curr_time.replace(year=curr_year + remind[6],

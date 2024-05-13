@@ -1,10 +1,21 @@
+from database.models import Remind
 from filters.callback import EditOptionObject
+from .clock import Interval
 
 
-def create_tmp(remind, files, categories) -> dict[str,]:
+def create_tmp(remind: Remind, files, categories) -> dict[str,]:
+
+    if remind.date_deadline != remind.date_last_notificate:
+        interval = Interval(days=remind.interval.days, hours=remind.interval.seconds // 3600,
+                                 minutes=(remind.interval.seconds % 3600) // 60, year=remind.ones_years,
+                                 month=remind.ones_month)
+    else:
+        interval = None
     return {"name": remind.name,
             "description": remind.text,
             "date_deadline": remind.date_deadline,
+            "date_last_notificate": remind.date_last_notificate,
+            "interval": interval,
             "files": files,
             "categories": categories
             }
@@ -30,7 +41,6 @@ def get_delete_ids(items) -> tuple:
 
 
 def get_current_items(items, files_ids_to_delete) -> list[tuple]:
-
     if files_ids_to_delete is None:
         return items
 

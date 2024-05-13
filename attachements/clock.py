@@ -12,9 +12,11 @@ class Interval:
     year: int = 0
     interval_delta: datetime.timedelta = datetime.timedelta(days=0, hours=0, minutes=0)
 
-    def __init__(self, hours, minutes):
-        self.interval_delta = datetime.timedelta(days=0, hours=hours, minutes=minutes)
-        pass
+    def __init__(self, hours=0, minutes=0, days=0, month=0, year=0):
+
+        self.interval_delta = datetime.timedelta(days=days, hours=hours, minutes=minutes)
+        self.year = year
+        self.month = month
 
     def to_string(self):
 

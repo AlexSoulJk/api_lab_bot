@@ -181,7 +181,8 @@ async def check_sample(query: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.send_message(chat_id=query.from_user.id, text=msg.get_remind_text_(info["remind_new"],
                                                                                  info["add_objects"]["categories"]),
                            reply_markup=kb.get_keyboard(
-                               btn.SHOW_FILES + btn.BACK_TO_EARLIER_REMIND + btn.EDIT_PART_OF_MENU))
+                               btn.SHOW_FILES + btn.BACK_TO_EARLIER_REMIND + btn.EDIT_PART_OF_MENU),
+                           parse_mode="HTML")
     await state.update_data(is_new=True)
     await state.set_state(ChangeRemind.choose_to_edit)
 
@@ -197,7 +198,8 @@ async def back_remind_switch(query: CallbackQuery, state: FSMContext, bot: Bot):
                                 reply_markup=kb.get_keyboard(
                                     btn.SHOW_FILES + (btn.BACK_TO_EARLIER_REMIND, btn.BACK_TO_NEW_REMIND)[
                                         info["is_new"]]
-                                    + btn.EDIT_PART_OF_MENU))
+                                    + btn.EDIT_PART_OF_MENU),
+                                parse_mode="HTML")
     await state.update_data(is_new=not info["is_new"])
 
 

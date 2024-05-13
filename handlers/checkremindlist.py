@@ -29,14 +29,12 @@ async def start_adding(message: Message, state: FSMContext):
     if message.text == "/check":
         remind_list = db.sql_query(query=select(Remind.name, Remind.id).where(
             Remind.user_id == user_id_).where(Remind.date_finish == null()).where(
-            Remind.date_is_delete == null()).order_by(desc(Remind.date_deadline)), is_single=False)
+            Remind.date_is_delete == null()).order_by(desc(Remind.date_last_notificate)), is_single=False)
     elif message.text == "/check_daily":
         remind_list = db.sql_query(query=select(Remind).where(
             Remind.user_id == user_id_).where(
-            Remind.date_deadline - datetime.datetime.now() < datetime.timedelta(days=1)).where(
+            Remind.Remind.date_last_notificate - datetime.datetime.now() < datetime.timedelta(days=1)).where(
             Remind.date_finish == null()), is_single=False)
-
-
 
     remind_list_btn = kb.get_remind_list_of_btn(remind_list)
     await state.update_data(user_name=user[0][0])
@@ -92,7 +90,7 @@ async def check_remind(query: CallbackQuery, callback_data: RemindListCallBack,
     await state.update_data(file_btn=files_btn)
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     await bot.send_message(chat_id=query.from_user.id, text=msg.get_remind_text_(obj),
-                           reply_markup=kb.get_keyboard(btn.REMIND_MENU_BAR))
+                           reply_markup=kb.get_keyboard(btn.REMIND_MENU_BAR), parse_mode="HTML")
     await state.set_state(CheckRemind.check_remind)
 
 
