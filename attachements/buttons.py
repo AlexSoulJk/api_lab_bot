@@ -1,6 +1,6 @@
 from filters.callback import SkipCallback, ConfirmCallback, RemindTypeCallBack, BackButtonCallBack, \
     ShowFilesCallBack, EditRemindCallBack, EditFilesCallBack, CloseCallBack, EditOptionCallBack, CheckSampleRemind, \
-    EditOptionObject, ClockCallback, RemindPeriodicType
+    EditOptionObject, ClockCallback, RemindPeriodicType, ShowFilesSCCallBack, ConfirmSCCallBack, MaRCallBack
 
 # ---------------------------------------------------------------------------------
 # Buttons
@@ -10,6 +10,7 @@ CONFIRMING = [("Да", ConfirmCallback(confirm=True)),
               ("Нет", ConfirmCallback(confirm=False))]
 # SKIP
 SKIP = [("Пропустить", SkipCallback(skip=True))]
+SKIP_ = [("Пропустить и принять изменения.", SkipCallback(skip=True))]
 # Back
 
 
@@ -58,13 +59,21 @@ BACK_TO_REMIND = [(f"{EMOJI_BACK_TO_REMIND} Вернуться к напомин
 
 # EDIT REMIND.---------------------------------------------------------------------------------------------
 # EDIT REMIND LIST
+
 EDIT_REMIND_LIST = [
     (f"{EMOJI_EDIT_NAME} Название", EditOptionCallBack(action="name")),
     (f"{EMOJI_EDIT_DESCRIPTION} Описание", EditOptionCallBack(action="description")),
-    (f"{EMOJI_EDIT_DEADLINE} Дедлайн", EditOptionCallBack(action="date_deadline")),
+    (f"{EMOJI_EDIT_DEADLINE} Время", EditOptionCallBack(action="time")),
     (f"{EMOJI_EDIT_FILES} Прикреплённые файлы", EditOptionCallBack(action="files")),
     (f"{EMOJI_EDIT_CATEGORIES} Категорию", EditOptionCallBack(action="categories")),
-    (f"{EMOJI_EDIT_TYPE} Тип", EditOptionCallBack(action="type"))]
+    (f"{EMOJI_EDIT_TYPE} Тип", EditOptionCallBack(action="type"))
+]
+
+EDIT_REMIND_TIME = [
+    (f"{EMOJI_EDIT_DEADLINE} Дата первого напоминания", EditOptionCallBack(action="date_last_notificate")),
+    (f"{EMOJI_EDIT_DEADLINE} Дедлайн", EditOptionCallBack(action="date_deadline")),
+    (f"{EMOJI_EDIT_DEADLINE} Интервал", EditOptionCallBack(action="interval")),
+]
 
 # EDIT FILE LIST
 ADD_OR_DELETE = [(f"{EMOJI_REMOVE_REMIND}Удалить", EditFilesCallBack(action="delete")),
@@ -81,7 +90,7 @@ EDIT_PART_OF_MENU = EDIT_MORE + EDITING_FINISH
 
 CHECK_SAMPLE = [("Посмотреть", CheckSampleRemind(action="check"))]
 
-CHECK_SAMPLE_DEFAULT = CHECK_SAMPLE + SKIP
+CHECK_SAMPLE_DEFAULT = CHECK_SAMPLE + SKIP_
 
 # TOOLS DICT
 LIST_MOVES = {"reminds": CLOSE_REMIND_LIST,
@@ -121,4 +130,10 @@ REMIND_TYPE = [("В определённое время", RemindPeriodicType()),
 CHANGE_TIME = [("часы", ClockCallback(action="switch", typo="h", data=0)),
                ("минуты", ClockCallback(action="switch", typo="m", data=1))]
 
-MARKED_AS_READ = [("Отметить как прочитанное", ConfirmCallback(confirm=True))]
+MARKED_AS_READ = "Отметить как прочитанное"
+CLOSE_REMIND = [(f"{EMOJI_CLOSE_REMIND_LIST} Закрыть напоминание", CloseCallBack(action="close_remind_sc"))]
+SHOW_FILES_TEXT = f"{EMOJI_SHOW_FILES} Показать вложенные файлы"
+BACK_TO_REMIND_SC = f"{EMOJI_BACK_TO_REMIND} Вернуться к напоминанию"
+
+CONFIRM_SC = [("Начать выбор даты", ConfirmSCCallBack(confirm=True)),
+              ("Удалить уведомление", ConfirmCallback(confirm=False))]

@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 
@@ -7,7 +6,8 @@ import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from scedular import aschedular as sc
 from dotenv import load_dotenv
-from handlers import Any, welcom, info, addremind, calendary_ex, checkremindlist, change, remove_remind, urgently_finish
+from handlers import Any, welcom, info, addremind, calendary_ex, \
+    checkremindlist, change, remove_remind, urgently_finish, scedular_reminds
 from handlers import timepicker
 load_dotenv()
 tg_token = os.getenv("TG_TOKEN")
@@ -18,7 +18,7 @@ dp = aiogram.Dispatcher()
 
 # Auth branches of the scenario
 dp.include_routers(welcom.router, addremind.router, checkremindlist.router, change.router, urgently_finish.router,
-                   remove_remind.router, info.router, calendary_ex.router, timepicker.router, Any.router)
+                   remove_remind.router, info.router, calendary_ex.router, timepicker.router, scedular_reminds.router, Any.router)
 # UI branches of the scenario
 #dp.include_routers()
 
@@ -31,12 +31,10 @@ commands = [
 ]
 async def main():
 
-    # scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-    # scheduler.add_job(sc.send_messages_interval_at_time, trigger="interval",
-    #                   seconds=60, kwargs={"bot": bot})
-    # scheduler.add_job(sc.send_messages_interval_not_at_time, trigger="interval",
-    #                   seconds=60, kwargs={"bot": bot})
-    # scheduler.start()
+    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    scheduler.add_job(sc.send_messages_interval_at_time, trigger="interval",
+                      seconds=60, kwargs={"bot": bot})
+    scheduler.start()
     # Устанавливаем команды для бота
     await bot.set_my_commands(commands)
     try:

@@ -3,7 +3,7 @@ from aiogram import Router, Bot, F
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from sqlalchemy import update, delete
+from sqlalchemy import update, delete, null
 from attachements import buttons as btn
 from attachements import keyboard as kb
 from attachements import message as msg
@@ -11,22 +11,35 @@ from attachements import tools as t
 from database.db import db
 from database.models import File, Remind, Category
 from filters.callback import EditRemindCallBack, EditOptionCallBack, BackButtonCallBack, \
-    CheckSampleRemind, SkipCallback, EditFilesCallBack, EditOptionObject, ButLeftRightCallBack, ShowFilesCallBack
+    CheckSampleRemind, SkipCallback, EditFilesCallBack, EditOptionObject, ButLeftRightCallBack, ShowFilesCallBack, \
+    ConfirmCallback
 from filters.states import CheckRemind, ChangeRemind
 
 router = Router()
 
-# TODO: Добавить изменение типа напоминания
+
+
 @router.callback_query(CheckRemind.check_remind,
                        EditRemindCallBack.filter(F.action == "edit"))
 @router.callback_query(ChangeRemind.choose_to_edit,
                        EditRemindCallBack.filter(F.action == "edit_more"))
+@router.callback_query(ChangeRemind.type,
+                       ConfirmCallback.filter(F.confirm == False))
 async def start_changing(query: CallbackQuery, state: FSMContext, bot: Bot):
-    await bot.edit_message_reply_markup(chat_id=query.from_user.id, message_id=query.message.message_id,
+    curr_state = await state.get_state()
+    info = await state.get_data()
+
+    if curr_state == ChangeRemind.type:
+        await bot.delete_message(chat_id=query.from_user.id,
+                                 message_id=query.message.message_id)
+
+    await bot.edit_message_reply_markup(chat_id=query.from_user.id,
+                                        message_id=(query.message.message_id,
+                                                    info.get("msg_remind_id"))[curr_state == ChangeRemind.type],
                                         inline_message_id=query.inline_message_id,
                                         reply_markup=kb.get_keyboard(btn.EDIT_REMIND_LIST + btn.BACK_TO_REMIND))
-    info = await state.get_data()
-    if await state.get_state() == CheckRemind.check_remind:
+
+    if curr_state == CheckRemind.check_remind:
         await state.update_data(remind_new=deepcopy(info["remind_tmp"]))
         await state.update_data(add_objects={"files": [],
                                              "categories": []})
@@ -47,6 +60,35 @@ async def change_without_option_start(query: CallbackQuery, callback_data: Callb
                            text=msg.CHANGE_DICT[key])
     await state.update_data(cur_change=key)
     await state.set_state(ChangeRemind.change_text)
+
+
+@router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "time"))
+async def time_changing_start(query: CallbackQuery, state: FSMContext, bot: Bot):
+    new_remind = (await state.get_data()).get("remind_new")
+
+    await bot.edit_message_reply_markup(chat_id=query.from_user.id,
+                                        message_id=query.message.message_id,
+                                        inline_message_id=query.inline_message_id,
+                                        reply_markup=kb.get_keyboard(btn.EDIT_REMIND_TIME[:(3, 1)[
+                                            new_remind["type"] == "common"]] + btn.BACK_TO_REMIND))
+
+
+@router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "type"))
+async def change_type(query: CallbackQuery, state: FSMContext, bot: Bot):
+    new_remind = (await state.get_data()).get("remind_new")
+    new_type = ("common", "periodic")[new_remind["type"] == "common"]
+
+    await bot.edit_message_reply_markup(chat_id=query.from_user.id,
+                                        message_id=query.message.message_id,
+                                        reply_markup=None)
+
+    await bot.send_message(chat_id=query.from_user.id, text=msg.CHANGE_TYPE_WARNING + ("периодическое.",
+                                                                                       "обычное.")[new_type == "common"],
+                           reply_markup=kb.get_keyboard(btn.CONFIRMING))
+
+    await state.update_data(remind_type=new_type)
+
+    await state.set_state(ChangeRemind.type)
 
 
 @router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "files"))
@@ -224,10 +266,19 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
     remind_new = (await state.get_data()).get("remind_new")
     delete_list = (await state.get_data()).get("delete_dict")
     add_dict = (await state.get_data()).get("add_objects")
+    interval_ = remind_new.get("interval")
+    year = month = interval = null()
+    if interval_ is not None:
+        year, month, interval = interval_.to_database()
 
     db.sql_query(query=update(Remind).where(Remind.id == remind_id).values(name=remind_new["name"],
                                                                            text=remind_new["description"],
                                                                            date_deadline=remind_new["date_deadline"],
+                                                                           date_last_notificate=
+                                                                           remind_new["date_last_notificate"],
+                                                                           interval=interval,
+                                                                           ones_month=month,
+                                                                           ones_years=year,
                                                                            ), is_single=True, is_update=True)
     if delete_list:
         delete_id_categories = delete_list.get("categories")

@@ -4,7 +4,8 @@ from aiogram.types import Message, CallbackQuery
 from attachements import keyboard as kb
 from attachements import buttons as btn
 from attachements import message as msg
-from filters.callback import ConfirmCallback, RemindTypeCallBack, RemindPeriodicType, BackButtonCallBack
+from filters.callback import ConfirmCallback, RemindTypeCallBack, RemindPeriodicType, BackButtonCallBack, \
+    EditOptionCallBack
 from filters.states import TimePicker, AddRemind, Calendary, ChangeRemind
 import datetime
 from aiogram.fsm.context import FSMContext
@@ -66,37 +67,61 @@ async def time_handler(query: CallbackQuery, callback_data: ClockCallback, state
     interval, cur_time, flag = c.handle_interval_change(interval=interval,
                                                         current_time=cur_time,
                                                         callback_data=callback_data)
+    cur_change = (await state.get_data()).get("cur_change")
+    remind = (await state.get_data()).get("remind_new")
+
+    if cur_change is None:
+        cur_change = ""
 
     is_start_date = (await state.get_data()).get("is_start_date")
 
     if flag:
+        remind_type = (await state.get_data()).get("remind_type")
         await bot.edit_message_text(chat_id=query.from_user.id,
                                     text=f"Выбранное время для {('дедлайна', 'начального')[is_start_date]} напоминания: "
                                          + cur_time.strftime("%H:%M") + ". " +
-                                         ("", msg.SHOW_SAMPLE)[is_changing],
+                                         ("", msg.SHOW_SAMPLE)[is_changing and
+                                                               (cur_change != "type"
+                                                                or remind_type == "common"
+                                                                or not is_start_date)],
                                     message_id=query.message.message_id,
                                     reply_markup=(kb.get_keyboard(btn.CONFIRMING),
-                                                  kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))[is_changing])
-
-        remind_type = (await state.get_data()).get("remind_type")
+                                                  kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))[
+                                        is_changing and
+                                        (cur_change != "type" or
+                                         remind_type == "common" or
+                                         not is_start_date)])
 
         if is_changing:
-            remind = (await state.get_data()).get("remind_new")
-            cur_change = (await state.get_data()).get("cur_change")
-            remind[cur_change] = cur_time
+            if cur_change != "type":
+                if remind_type == "common":
+                    remind[cur_change] = remind["date_deadline"] = cur_time
+                else:
+                    remind[cur_change] = cur_time
+                await state.set_state(ChangeRemind.check_sample)
+                await state.update_data(remind_new=remind)
+                return
+
+            remind[("date_deadline", "date_last_notificate")[is_start_date]] = cur_time
             await state.update_data(remind_new=remind)
 
-        if is_start_date and not is_changing:
+        if is_start_date:
             await state.update_data(date_start=cur_time)
-        elif not is_start_date and not is_changing:
+        else:
             await state.update_data(date_deadline=cur_time)
 
         if remind_type == "common":
-            await state.set_state((AddRemind.add_deadline_end, ChangeRemind.check_sample)[is_changing])
+            if cur_change == "type":
+                remind["date_deadline"] = cur_time
+                remind["interval"] = None
+                await state.update_data(remind_new=remind)
+            await state.set_state((AddRemind.add_deadline_end,
+                                   ChangeRemind.check_sample)[is_changing])
         elif remind_type != "common" and is_start_date:
             await state.set_state(AddRemind.interval_start)
         else:
-            await state.set_state(AddRemind.add_deadline_end)
+            await state.set_state((AddRemind.add_deadline_end,
+                                   ChangeRemind.check_sample)[is_changing])
     else:
         c.update_keyboard(interval, callback_data.typo, but_)
         but = c.get_keyboard_clock(but_, adjust_=(1,))
@@ -135,18 +160,24 @@ async def switch_time_handler(query: CallbackQuery, callback_data: ClockCallback
 
 @router.callback_query(AddRemind.interval_start, ConfirmCallback.filter(F.confirm == True))
 @router.callback_query(AddRemind.interval_finish, ConfirmCallback.filter(F.confirm == False))
+@router.callback_query(ChangeRemind.start, EditOptionCallBack.filter(F.action == "interval"))
 async def test_interval_start(query: CallbackQuery, state: FSMContext, bot: Bot):
     curr_state = await state.get_state()
-    date_start = (await state.get_data()).get("date_start")
+
+    if curr_state != ChangeRemind.start:
+        date_start = (await state.get_data()).get("date_start")
+        await bot.delete_message(chat_id=query.from_user.id,
+                                 message_id=query.message.message_id)
+    else:
+        remind = (await state.get_data()).get("remind_new")
+        date_start = remind["date_last_notificate"]
+        await state.update_data(date_start=date_start)
 
     if curr_state == AddRemind.interval_start:
         await bot.delete_message(chat_id=query.from_user.id,
                                  message_id=(await state.get_data()).get("id_msg_calendary"))
         await bot.send_message(chat_id=query.from_user.id,
                                text=f'Вы выбрали в качестве начальной даты: {date_start.strftime("%Y-%m-%d %H:%M")}.')
-
-    await bot.delete_message(chat_id=query.from_user.id,
-                             message_id=query.message.message_id)
 
     but_, interval, date_start = c.get_clock_(date_start=date_start)
 
@@ -174,20 +205,36 @@ async def cb_handler_interval_change(query: CallbackQuery, callback_data: ClockC
     date_curr = (await state.get_data()).get("next_remind_time")
     interval = (await state.get_data()).get("interval_curr")
     but_ = (await state.get_data()).get("buttons")
-
+    is_changing = (await state.get_data()).get("is_changing")
     interval, handle_result, flag = c.handle_interval_change(interval=interval,
                                                              current_time=date_curr,
                                                              callback_data=callback_data)
+    cur_change = (await state.get_data()).get("cur_change")
+
+    if cur_change is None:
+        cur_change = ""
+
     if interval.is_zero() and flag:
         return
 
     if flag:
         date, time = interval.to_string()
         await bot.edit_message_text(chat_id=query.from_user.id,
-                                    text=msg.INTERVAL_MSG + date + time,
-                                    message_id=query.message.message_id, reply_markup=kb.get_keyboard(btn.CONFIRMING))
-        await state.update_data(interval_time_=interval.to_database())
-        await state.set_state(AddRemind.interval_finish)
+                                    text=msg.INTERVAL_MSG + date + time +
+                                         ("", msg.SHOW_SAMPLE)[is_changing and cur_change != "type"],
+                                    message_id=query.message.message_id,
+                                    reply_markup=(kb.get_keyboard(btn.CONFIRMING),
+                                                  kb.get_keyboard(btn.CHECK_SAMPLE_DEFAULT))[is_changing
+                                                                                             and cur_change != "type"])
+        if is_changing:
+            remind = (await state.get_data()).get("remind_new")
+            remind["interval"] = interval
+            await state.update_data(remind_new=remind)
+        else:
+            await state.update_data(interval_time_=interval.to_database())
+
+        await state.set_state((AddRemind.interval_finish,
+                               ChangeRemind.check_sample)[is_changing and cur_change != "type"])
 
     else:
         c.update_keyboard(interval,

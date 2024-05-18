@@ -29,11 +29,12 @@ async def start_adding(message: Message, state: FSMContext):
     if message.text == "/check":
         remind_list = db.sql_query(query=select(Remind.name, Remind.id).where(
             Remind.user_id == user_id_).where(Remind.date_finish == null()).where(
-            Remind.date_is_delete == null()).order_by(desc(Remind.date_last_notificate)), is_single=False)
+            Remind.date_is_delete == null()).order_by(Remind.date_last_notificate), is_single=False)
+
     elif message.text == "/check_daily":
-        remind_list = db.sql_query(query=select(Remind).where(
+        remind_list = db.sql_query(query=select(Remind.name, Remind.id).where(
             Remind.user_id == user_id_).where(
-            Remind.Remind.date_last_notificate - datetime.datetime.now() < datetime.timedelta(days=1)).where(
+            Remind.date_last_notificate - datetime.datetime.now() < datetime.timedelta(days=1)).where(
             Remind.date_finish == null()), is_single=False)
 
     remind_list_btn = kb.get_remind_list_of_btn(remind_list)

@@ -39,6 +39,7 @@ class CheckRemind(StatesGroup):
 
 
 class ChangeRemind(StatesGroup):
+
     start = State()
 
     change_text = State()
@@ -46,6 +47,7 @@ class ChangeRemind(StatesGroup):
     choose_delete = State()
     change_file = State()
     add_object = State()
+    type = State()
     change_deadline = State()
     change_category = State()
     change_type = State()

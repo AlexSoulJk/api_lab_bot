@@ -18,6 +18,7 @@ router = Router()
 @router.callback_query(CheckRemind.check_remind,
                        CloseCallBack.filter(F.action == "remove_remind"))
 async def accept_remove(query: CallbackQuery, state: FSMContext, bot: Bot):
+    await state.update_data(id_to_delete_msg=query.message.message_id)
     await bot.send_message(chat_id=query.from_user.id, text=msg.REMOVE_SHOORING_MSG,
                            reply_markup=kb.get_keyboard(btn.CONFIRMING))
     await state.set_state(RemoveRemind.confirming)
@@ -26,6 +27,7 @@ async def accept_remove(query: CallbackQuery, state: FSMContext, bot: Bot):
 @router.callback_query(RemoveRemind.confirming,
                        ConfirmCallback.filter(F.confirm == True))
 async def accept_remove(query: CallbackQuery, state: FSMContext, bot: Bot):
+    await bot.delete_message(chat_id=query.from_user.id, message_id=(await state.get_data()).get("id_to_delete_msg"))
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     remind_id = (await state.get_data()).get("remind_id")
     db.sql_query(query=update(Remind).where(Remind.id == remind_id).values(date_is_delete=datetime.date.today()), is_update=True)

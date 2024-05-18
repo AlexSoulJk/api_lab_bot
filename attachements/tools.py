@@ -4,11 +4,10 @@ from .clock import Interval
 
 
 def create_tmp(remind: Remind, files, categories) -> dict[str,]:
-
     if remind.date_deadline != remind.date_last_notificate:
         interval = Interval(days=remind.interval.days, hours=remind.interval.seconds // 3600,
-                                 minutes=(remind.interval.seconds % 3600) // 60, year=remind.ones_years,
-                                 month=remind.ones_month)
+                            minutes=(remind.interval.seconds % 3600) // 60, year=remind.ones_years,
+                            month=remind.ones_month)
     else:
         interval = None
     return {"name": remind.name,
@@ -17,8 +16,8 @@ def create_tmp(remind: Remind, files, categories) -> dict[str,]:
             "date_last_notificate": remind.date_last_notificate,
             "interval": interval,
             "files": files,
-            "categories": categories
-            }
+            "categories": categories,
+            "type": ("periodic", "common")[interval is None]}
 
 
 def check_to_delete(items: [(str, EditOptionObject)]) -> [int]:

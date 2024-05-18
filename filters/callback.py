@@ -70,3 +70,17 @@ class ClockCallback(CallbackData, prefix='inline_timepicker'):
 
 class RemindPeriodicType(CallbackData, prefix="type_period"):
     is_at_time: bool = False
+
+
+class ShowFilesSCCallBack(CallbackData, prefix="show_files_in_scedular"):
+    id: int
+
+
+class BackSCCallBack(CallbackData, prefix="back_to_remind_in_scedular"):
+    id: int
+
+class ConfirmSCCallBack(CallbackData, prefix="confirm_in_sc"):
+    confirm: bool
+
+class MaRCallBack(CallbackData, prefix="marked_as_read_in_sc"):
+    id: int

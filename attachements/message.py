@@ -27,6 +27,7 @@ FINAL_INTERVAL = "Вы выбрали интервал повторения: "
 
 MSG_SHOORING_IN_PERIODIC_START_DATE = "Ваше периодическое напоминание начнет приходить с "
 TRY_INPUT_REMIND_FILE = "Хотите добавить файл?"
+TRY_INPUT_MORE_REMIND_FILE = "Хотите добавить ещё файл?"
 INPUT_REMIND_FILE = "Прикрепите файл, который хотите прикрепить."
 TRY_INPUT_REMIND_PICTURE = "Хотите добавить картинку, " \
                            "которая будет отображать задачу?"
@@ -50,6 +51,8 @@ CHANGE_DEADLINE = "Выберите новую дату."
 CHANGE_OPTION = "Выберите действие:"
 CHANGE_CATEGORIES_TO_DELETE = "Выберите категории, которые нужно удалить:"
 CHANGE_FILE_TO_DELETE = "Выберите файлы, которые нужно удалить:"
+CHANGE_TYPE_WARNING = "Вы уверены в изменении типа уведомления? Так вам придётся заново задать " \
+                      "всю информацию связанную с временем. Новый тип будет: "
 CHANGE_DICT = {"name": CHANGE_NAME,
                "description": CHANGE_DESCRIPTION,
                "date_deadline": CHANGE_DEADLINE}
@@ -82,6 +85,7 @@ INTERVAL_PREP = ["через ", "и "]
 INTERVAL_SUCCSESS = {False: "Напомнить вам ",
                      True: "Напоминать вам "}
 
+MSG_WANNA_CHANGE_DATE_DEADLINE = "Хотите продлить напоминание?"
 
 # TODO: Поработать с оформлением текста в напоминании
 def get_remind_text(remind: Remind, categories):

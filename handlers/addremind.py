@@ -100,7 +100,6 @@ async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
 
 @router.message(AddRemind.add_file, F.document)
 async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
-    # await bot.delete_message(chat_id=query.from_user.id, message_id=query.message_id)
     files_list = (await state.get_data()).get("list_remind_files")
     is_one_add = (await state.get_data()).get("is_one_add")
     file_name = query.document.file_name
@@ -108,7 +107,7 @@ async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
     if is_one_add:
         await state.update_data(is_one_add=False)
         await bot.send_message(chat_id=query.from_user.id,
-                               text=msg.TRY_INPUT_REMIND_FILE,
+                               text=msg.TRY_INPUT_MORE_REMIND_FILE,
                                reply_markup=kb.get_keyboard(btn.CONFIRMING))
 
     await state.set_state(AddRemind.try_add_file)
