@@ -1,7 +1,8 @@
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-from filters.callback import RemindListCallBack, ButLeftRightCallBack, FilesListCallBack, EditOptionObject
+from filters.callback import RemindListCallBack, ButLeftRightCallBack, FilesListCallBack, EditOptionObject, \
+    FilesListChCallBack
 
 PER_IN_CHUNK_REMIND_LIST = 10
 NEXT_CHUNK = "⯈ "
@@ -51,10 +52,13 @@ def get_remind_list_of_btn(items: list[tuple]):
 
 
 def get_files_list_of_btn(items: list[tuple], add_list_files=None):
+    return [(text, FilesListCallBack(file_id=item_id)) for text, item_id in items]
+
+
+def get_add_files_list_of_btn(add_list_files=None):
     if add_list_files is None:
-        add_list_files = []
-    return [(text, FilesListCallBack(file_id=item_id)) for text, item_id in items] + \
-        [(add_name, FilesListCallBack(file_id=-1)) for add_name, _ in add_list_files]
+        add_list_files = {}
+    return [(add_info[0], FilesListCallBack(file_id=add_id)) for add_id, add_info in add_list_files.items()]
 
 
 def get_optional_object_btn(items: list[tuple]):

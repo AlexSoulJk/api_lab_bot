@@ -1,16 +1,34 @@
+import os.path
+from googleapiclient.http import MediaFileUpload
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 
-class Helper:
 
-    def save_files(self, user_id, remind_name, urls: [str], file):
-        res = []
-        #TODO: Create directory with name user_id,
-        # then in it create directory with remind_name,
-        # then download files
-        return res
+def get_credentials():
+    SCOPES = ['https://www.googleapis.com/auth/drive.file']
+    creds = None
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open("token.json", 'w') as token:
+            token.write(creds.to_json())
+    return creds
 
-    def get_files(self, user_id, remind_name, url: [str]):
-        pass
 
-    def remove_files(self, user_id, remind_name, url: [str]):
-        pass
+def upload_file_to_drive(file_name, file_path, credentials):
+    folder_id = os.getenv("FOLDER_ID")
+    service = build('drive', 'v3', credentials=credentials)
+    file_metadata = {'name': file_name,
+                     'parents': [folder_id]}
+    media = MediaFileUpload(file_path, mimetype='application/octet-stream')
+    file = service.files().create(body=file_metadata, media_body=media, fields='id, parents').execute()
+    return file.get('id')
+
 

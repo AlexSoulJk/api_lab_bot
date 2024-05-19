@@ -32,6 +32,8 @@ class ShowFilesCallBack(CallbackData, prefix="show_files_btn"):
 class FilesListCallBack(CallbackData, prefix="files"):
     file_id: int
 
+class FilesListChCallBack(CallbackData, prefix="files"):
+    unique_id: int
 
 class BackButtonCallBack(CallbackData, prefix="back"):
     action: str = "back"

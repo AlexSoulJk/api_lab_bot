@@ -1,15 +1,18 @@
+import os
+
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from filters.states import AddRemind
-from aiogram import Router, Bot, F, types
+from aiogram import Router, Bot, F
 from attachements import message as msg
 from attachements import keyboard as kb
 from attachements import buttons as btn
 from filters.callback import ConfirmCallback, RemindTypeCallBack
-from aiogram.types import Message, CallbackQuery, BufferedInputFile, FSInputFile, InputMediaPhoto
+from aiogram.types import Message, CallbackQuery
 from database.db import db
 from database.models import User, File, Remind, Category
-from sqlalchemy import select, null, desc
+from sqlalchemy import select, null
+from googledrive.helper import get_credentials, upload_file_to_drive
 
 router = Router()
 
@@ -98,17 +101,46 @@ async def start_input_file(query: CallbackQuery, state: FSMContext, bot=Bot):
     await state.set_state(AddRemind.add_file)
 
 
-@router.message(AddRemind.add_file, F.document)
+@router.message(AddRemind.add_file)
 async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
-    files_list = (await state.get_data()).get("list_remind_files")
+    credentials = get_credentials()
+
     is_one_add = (await state.get_data()).get("is_one_add")
-    file_name = query.document.file_name
-    files_list.append((file_name, query.document.file_id))
-    if is_one_add:
-        await state.update_data(is_one_add=False)
-        await bot.send_message(chat_id=query.from_user.id,
-                               text=msg.TRY_INPUT_MORE_REMIND_FILE,
-                               reply_markup=kb.get_keyboard(btn.CONFIRMING))
+
+    file_path = file_name = file_info = None
+
+    if query.document:
+        file_info = await query.bot.get_file(query.document.file_id)
+        file_path = os.path.join("tmp", file_info.file_unique_id)
+        file_name = query.document.file_name
+    elif query.photo:
+        file_info = await query.bot.get_file(query.photo[-1].file_id)
+        file_name = f"photo_{file_info.file_unique_id}.jpg"
+        file_path = os.path.join("tmp", file_name)
+
+    if file_path and file_name:
+
+        try:
+            await bot.download_file(file_info.file_path, file_path)
+            drive_file_url = upload_file_to_drive(file_name, file_path, credentials)
+            files_list = (await state.get_data()).get("list_remind_files")
+            files_list.append((file_name, drive_file_url))
+            await state.update_data(list_remind_files=files_list)
+
+            await query.answer("Файл успешно загружен на Google Drive.")
+
+        except Exception as e:
+            await query.answer("Произошла ошибка при загрузке файла на Google Drive.")
+            print(e)
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+        if is_one_add:
+            await state.update_data(is_one_add=False)
+            await bot.send_message(chat_id=query.from_user.id,
+                                   text=msg.TRY_INPUT_MORE_REMIND_FILE,
+                                   reply_markup=kb.get_keyboard(btn.CONFIRMING))
 
     await state.set_state(AddRemind.try_add_file)
 

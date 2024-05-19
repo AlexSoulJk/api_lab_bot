@@ -1,9 +1,11 @@
+import os
 from copy import deepcopy
 from aiogram import Router, Bot, F
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from sqlalchemy import update, delete, null
+from googleapiclient.errors import HttpError
+from sqlalchemy import update, delete, null, select
 from attachements import buttons as btn
 from attachements import keyboard as kb
 from attachements import message as msg
@@ -14,9 +16,10 @@ from filters.callback import EditRemindCallBack, EditOptionCallBack, BackButtonC
     CheckSampleRemind, SkipCallback, EditFilesCallBack, EditOptionObject, ButLeftRightCallBack, ShowFilesCallBack, \
     ConfirmCallback
 from filters.states import CheckRemind, ChangeRemind
+from googledrive.helper import upload_file_to_drive, get_credentials
+from googleapiclient.discovery import build
 
 router = Router()
-
 
 
 @router.callback_query(CheckRemind.check_remind,
@@ -41,7 +44,7 @@ async def start_changing(query: CallbackQuery, state: FSMContext, bot: Bot):
 
     if curr_state == CheckRemind.check_remind:
         await state.update_data(remind_new=deepcopy(info["remind_tmp"]))
-        await state.update_data(add_objects={"files": [],
+        await state.update_data(add_objects={"files": {-1: ""},
                                              "categories": []})
         await state.update_data(is_changing=True)
     await state.update_data(msg_remind_id=query.message.message_id)
@@ -83,7 +86,8 @@ async def change_type(query: CallbackQuery, state: FSMContext, bot: Bot):
                                         reply_markup=None)
 
     await bot.send_message(chat_id=query.from_user.id, text=msg.CHANGE_TYPE_WARNING + ("периодическое.",
-                                                                                       "обычное.")[new_type == "common"],
+                                                                                       "обычное.")[
+        new_type == "common"],
                            reply_markup=kb.get_keyboard(btn.CONFIRMING))
 
     await state.update_data(remind_type=new_type)
@@ -124,14 +128,36 @@ async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bo
     await state.set_state(ChangeRemind.add_object)
 
 
-@router.message(ChangeRemind.add_object, F.document)
-@router.message(ChangeRemind.add_object, F.text)
+@router.message(ChangeRemind.add_object)
 async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bot: Bot):
     cur_change = (await state.get_data()).get("cur_change")
     list_to_add = (await state.get_data()).get("add_objects")
     is_add_one = (await state.get_data()).get("is_one_add")
+
     if cur_change == "files":
-        list_to_add[cur_change].append((query.document.file_name, query.document.file_id))
+        cur_number_of_file = (await state.get_data()).get("last_id", -1)
+        if query.document:
+            file_name = query.document.file_name
+            file_info = await query.bot.get_file(query.document.file_id)
+            file_path = os.path.join("tmp", file_info.file_unique_id)
+            url = query.document.file_id
+            flag = True
+        else:
+            file_info = await query.bot.get_file(query.photo[-1].file_id)
+            file_name = f"photo_{file_info.file_unique_id}.jpg"
+            file_path = os.path.join("tmp", file_name)
+            url = query.photo[-1].file_id
+            flag = False
+
+        await bot.download_file(file_info.file_path, file_path)
+
+        list_to_add[cur_change][cur_number_of_file] = ((file_name,
+                                                        file_path,
+                                                        file_info.file_path,
+                                                        url,
+                                                        flag))
+
+        await state.update_data(last_id=cur_number_of_file - 1)
     elif cur_change == "categories":
         list_to_add[cur_change].append(query.text)
 
@@ -216,7 +242,6 @@ async def check_sample(query: CallbackQuery, state: FSMContext, bot: Bot):
     await bot.delete_message(chat_id=query.from_user.id, message_id=info["msg_remind_id"])
     await bot.delete_message(chat_id=query.from_user.id, message_id=query.message.message_id)
     id_to_delete = info.get("id_delete_msg")
-    # TODO: Debug delete calendary confirming message
     if id_to_delete is not None:
         await bot.delete_message(chat_id=query.from_user.id, message_id=id_to_delete)
 
@@ -252,9 +277,11 @@ async def show_files(query: CallbackQuery, state: FSMContext, bot: Bot):
     add_files = ((await state.get_data()).get("add_objects")["files"], None)[not is_new]
     await bot.edit_message_reply_markup(chat_id=query.from_user.id, message_id=query.message.message_id,
                                         reply_markup=kb.get_smart_list(
-                                            kb.get_files_list_of_btn(remind["files"], add_files),
+                                            kb.get_files_list_of_btn(remind["files"], add_files)
+                                            + kb.get_add_files_list_of_btn(add_files),
                                             btn.BACK_TO_REMIND))
     await state.update_data(is_new=not is_new)
+
 
 
 @router.callback_query(ChangeRemind.choose_to_edit, EditRemindCallBack.filter(F.action == "end"))
@@ -287,13 +314,40 @@ async def insert_changes(query: CallbackQuery, state: FSMContext, bot: Bot):
             db.sql_query(query=delete(Category).where(Category.id.in_(delete_id_categories)), is_update=True)
 
         if delete_id_files:
+            credentials = get_credentials()
+            service = build('drive', 'v3', credentials=credentials)
+
+            urls = db.sql_query(query=select(File.file_name, File.file_url).where(File.id.in_(delete_id_files)),
+                                is_update=False, is_single=False)
+
+            for name, url in urls:
+                try:
+                    service.files().delete(fileId=url).execute()
+                    print(f"Файл {name} успешно удален.")
+                except HttpError as error:
+                    print(f'Не удалось удалить файл {name}.\nHTTP ошибка: {error}')
+
             db.sql_query(query=delete(File).where(File.id.in_(delete_id_files)), is_update=True)
 
-    if len(add_dict["files"]):
+    if len(add_dict["files"]) and add_dict["files"][-1] != "":
+        drive_url = []
+        credentials = get_credentials()
+        for file_name, file_path, file_path_t, _, _ in add_dict["files"].values():
+            if file_path and file_name:
+                try:
+                    await bot.download_file(file_path_t, file_path)
+                    drive_url.append((file_name, upload_file_to_drive(file_name, file_path, credentials)))
+                except Exception as e:
+                    await query.answer("Произошла ошибка при загрузке файла на Google Drive.")
+                    print(e)
+                finally:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+
         db.create_objects([File(remind_id=remind_id,
                                 file_name=file_name_,
                                 file_url=file_url_)
-                           for file_name_, file_url_ in add_dict["files"]])
+                           for file_name_, file_url_ in drive_url])
 
     if len(add_dict["categories"]):
         db.create_objects([Category(remind_id=remind_id,

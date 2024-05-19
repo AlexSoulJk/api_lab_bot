@@ -1,5 +1,10 @@
+from io import BytesIO
+
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
+
 from filters.states import CheckRemind, ChangeRemind
 from aiogram import Router, Bot, F, types
 from attachements import message as msg
@@ -13,6 +18,8 @@ from database.db import db
 from database.models import User, File, Remind, Category
 from sqlalchemy import select, update, null, desc
 import datetime
+
+from googledrive.helper import get_credentials
 
 router = Router()
 
@@ -114,14 +121,7 @@ async def back_to_remind(query: CallbackQuery, state: FSMContext, bot: Bot):
     await state.set_state(CheckRemind.check_remind)
 
 
-@router.callback_query(CheckRemind.check_files_list, FilesListCallBack.filter())
-async def check_file(query: CallbackQuery, callback_data: FilesListCallBack,
-                         state: FSMContext, bot: Bot):
-    url = db.sql_query(query=select(File.file_url).where(File.id == callback_data.file_id), is_single=True)
-    await bot.send_document(chat_id=query.from_user.id, document=url)
-    await bot.edit_message_reply_markup(chat_id=query.from_user.id, message_id=query.message.message_id,
-                                        reply_markup=kb.get_keyboard(btn.REMIND_MENU_BAR))
-    await state.set_state(CheckRemind.check_remind)
+
 
 
 @router.callback_query(CheckRemind.start, CloseCallBack.filter(F.action=="close_list"))
