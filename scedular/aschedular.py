@@ -22,13 +22,13 @@ async def send_messages_interval_at_time(bot: Bot):
             Remind.user_id == User.id).where(
             Remind.date_finish == null()).where(
             Remind.date_is_delete == null()).where(
-            Remind.date_last_notificate == curr_time), is_single=False)
+            Remind.date_last_notificate <= curr_time), is_single=False)
     if reminds:
         for remind in reminds:
             btn_file = [(btn.SHOW_FILES_TEXT, ShowFilesSCCallBack(id=remind[0]))]
             categories = db.sql_query(query=select(Category.category_name, Category.id).where(
                 Category.remind_id == remind[0]), is_single=False)
-            if remind[7] == null():
+            if remind[7] is None:
                 await bot.send_message(chat_id=remind[3],
                                        text=get_remind_text_(remind={
                                            "name": remind[1],

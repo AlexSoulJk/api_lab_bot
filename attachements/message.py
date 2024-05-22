@@ -131,6 +131,6 @@ def get_remind_text_(remind, add_list_categories=None):
 
     return f"<b>Название</b>: {remind['name']}\n\n\n" \
            f"<b>Описание</b>: {remind['description']}\n\n\n" \
-           f"<b>Следующие напоминание</b>: {remind['date_last_notificate'].strftime('%Y-%m-%d %H:%M')}\n" \
+           f"<b>Следующее напоминание</b>: {remind['date_last_notificate'].strftime('%Y-%m-%d %H:%M')}\n" \
            f"{interval_info}" \
-           f"<b>Category</b>: " + res
+           f"<b>Категории</b>: " + res

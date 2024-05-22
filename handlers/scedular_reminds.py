@@ -10,7 +10,7 @@ from database.models import File
 from attachements import message as msg
 from filters.callback import ShowFilesSCCallBack, BackSCCallBack, \
     FilesListCallBack, CloseCallBack, MaRCallBack
-
+from .files_h import get_file
 router = Router()
 
 
@@ -61,8 +61,10 @@ async def back_to_remind(query: CallbackQuery, callback_data: BackSCCallBack,
 @router.callback_query(FilesListCallBack.filter())
 async def check_file(query: CallbackQuery, callback_data: FilesListCallBack,
                      state: FSMContext, bot: Bot):
-    url = db.sql_query(query=select(File.file_url).where(File.id == callback_data.file_id), is_single=True)
-    await bot.send_document(chat_id=query.from_user.id, document=url)
+    await bot.send_document(
+        chat_id=query.from_user.id,
+        document=get_file(callback_data.file_id),
+    )
 
 
 @router.callback_query(CloseCallBack.filter(F.action == "close_remind_sc"))

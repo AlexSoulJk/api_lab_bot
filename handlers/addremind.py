@@ -117,7 +117,10 @@ async def input_file(query: CallbackQuery, state: FSMContext, bot: Bot):
         file_info = await query.bot.get_file(query.photo[-1].file_id)
         file_name = f"photo_{file_info.file_unique_id}.jpg"
         file_path = os.path.join("tmp", file_name)
-
+    else:
+        await bot.send_message(chat_id=query.from_user.id,
+                               text="Можно загрузить или фото, или документ. \nПопробуйте снова.")
+        return
     if file_path and file_name:
 
         try:

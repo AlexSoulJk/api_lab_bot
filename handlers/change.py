@@ -142,12 +142,16 @@ async def process_optional_add_start(query: CallbackQuery, state: FSMContext, bo
             file_path = os.path.join("tmp", file_info.file_unique_id)
             url = query.document.file_id
             flag = True
-        else:
+        elif query.photo:
             file_info = await query.bot.get_file(query.photo[-1].file_id)
             file_name = f"photo_{file_info.file_unique_id}.jpg"
             file_path = os.path.join("tmp", file_name)
             url = query.photo[-1].file_id
             flag = False
+        else:
+            await bot.send_message(chat_id=query.from_user.id,
+                                   text="Можно загрузить или фото, или документ. \nПопробуйте снова.")
+            return
 
         await bot.download_file(file_info.file_path, file_path)
 

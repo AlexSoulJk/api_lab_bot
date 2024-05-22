@@ -10,7 +10,7 @@ CONFIRMING = [("Да", ConfirmCallback(confirm=True)),
               ("Нет", ConfirmCallback(confirm=False))]
 # SKIP
 SKIP = [("Пропустить", SkipCallback(skip=True))]
-SKIP_ = [("Пропустить и принять изменения.", SkipCallback(skip=True))]
+SKIP_ = [("Пропустить и принять изменения", SkipCallback(skip=True))]
 # Back
 
 
