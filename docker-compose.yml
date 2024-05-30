@@ -13,7 +13,7 @@ services:
       sh -c "python main.py"
     environment:
       - TZ=Europe/Moscow
-      - db_url=postgresql://USERNAME:PASSWORD@database:5432/DBNAME
+      - db_url=postgresql://${dbusername}:${pass}@database:5432/${DBNAME}
     depends_on:
       - database
 
@@ -24,9 +24,9 @@ services:
       - "5435:5432"
     environment:
       - TZ=Europe/Moscow
-      - POSTGRES_DB=DBNAME
-      - POSTGRES_USER=USERNAME
-      - POSTGRES_PASSWORD=PASSWORD
+      - POSTGRES_DB=${DBNAME}
+      - POSTGRES_USER=${dbusername}
+      - POSTGRES_PASSWORD=${pass}
     volumes:
       - postgres:/var/lib/postgresql/data
 
