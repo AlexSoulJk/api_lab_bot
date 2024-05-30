@@ -1,7 +1,7 @@
 import logging
 from dotenv import load_dotenv
 import os
-
+import subprocess
 
 from dotenv import load_dotenv
 
@@ -20,12 +20,20 @@ class Database:
         self.engine = None
 
     def connect(self):
+        def run_migrations():
+            # Функция для запуска Alembic миграций
+            try:
+                subprocess.run(["alembic", "upgrade", "head"], check=True)
+                logging.info("Migrations applied successfully")
+            except subprocess.CalledProcessError as e:
+                logging.error(f"Failed to apply migrations: {e}")
 
         try:
             self.engine = create_engine(self.url)
             self.session_maker = sessionmaker(bind=self.engine)
             self.sql_query(query=select(1))
             logging.info("Database connected")
+            run_migrations()  # Вызов метода для запуска миграций
         except Exception as e:
             logging.error(e)
             logging.error("Database didn't connect")
@@ -43,6 +51,9 @@ class Database:
             session.commit()
             session.refresh(model)
             return model.id
+
+
+
 
     def create_objects(self, model_s: []):
         with self.session_maker(expire_on_commit=True) as session:
