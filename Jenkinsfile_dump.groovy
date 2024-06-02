@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-    stage('Getting creds and env variables') {
+        stage('Getting creds and env variables') {
             steps {
                 echo '===============getting env variables==================='
                 withCredentials([file(credentialsId: 'ENV', variable: 'ENV'),
@@ -27,7 +27,6 @@ pipeline {
                 echo '===============got creds and env variables==================='
             }
         }
-    }
         stage('Backup') {
             steps {
                 script {
