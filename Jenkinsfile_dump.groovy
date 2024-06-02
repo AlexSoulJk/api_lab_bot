@@ -1,5 +1,6 @@
 pipeline {
     agent any
+    stages {
         stage('Backup') {
             steps {
                 script {
@@ -13,4 +14,5 @@ pipeline {
                 }
             }
         }
+    }
 }
