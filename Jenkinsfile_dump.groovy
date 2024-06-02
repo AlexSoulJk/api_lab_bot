@@ -5,7 +5,11 @@ pipeline {
         stage('Backup') {
             steps {
                 script {
-                    sh 'py backup_database.py'
+                    if (fileExists('backup_database.py')) {
+                        sh 'py backup_database.py'
+                    } else {
+                        echo 'Файл backup_database.py не найден'
+                    }
                 }
             }
         }
