@@ -1,6 +1,28 @@
 pipeline {
     agent any
 
+    stage('Download git repo') {
+            steps {
+                echo '===============downloading git repo==================='
+                script {
+                    try {
+                        if (isUnix()) {
+                            sh 'rm -rf Reminder_Bot'
+                            sh 'git clone --depth=1 https://github.com/AlexSoulJk/api_lab_bot.git'
+                            sh 'rm -rf api_lab_bot/.git*'
+                        } else {
+                            bat 'powershell -Command "Get-ChildItem -Path .\\* -Recurse | Remove-Item -Force -Recurse"'
+                            bat 'git clone --depth=1 https://github.com/AlexSoulJk/api_lab_bot.git'
+                            bat 'powershell Remove-Item api_lab_bot/.git* -Recurse -Force'
+                        }
+                    } catch (Exception e) {
+                        error "Failed to download git repo: ${e.getMessage()}"
+                    }
+                }
+                echo '===============git repo downloaded==================='
+            }
+        }
+
     stages {
         stage('Getting creds and env variables') {
             steps {
