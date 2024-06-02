@@ -30,13 +30,13 @@ pipeline {
         }
 
         stage('Check variables') {
-        echo '===============start checking env variables==================='
             steps {
+                echo '===============start checking env variables==================='
                 echo "ENV: $ENV"
                 echo "CREDS: $CREDS"
                 echo "TOKEN: $TOKEN"
-                }
-        echo '===============all checked env variables===================='
+                echo '===============all checked env variables===================='
+            }
         }
 
         stage('Getting creds and env variables') {
