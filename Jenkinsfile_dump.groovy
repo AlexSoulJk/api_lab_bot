@@ -5,7 +5,7 @@ pipeline {
         stage('Backup') {
             steps {
                 script {
-                    sh 'python3 backup_database.py'
+                    sh 'py backup_database.py'
                 }
             }
         }
