@@ -1,7 +1,10 @@
 pipeline {
     agent any
 
-    stage('Download git repo') {
+
+
+    stages {
+        stage('Download git repo') {
             steps {
                 echo '===============downloading git repo==================='
                 script {
@@ -23,7 +26,6 @@ pipeline {
             }
         }
 
-    stages {
         stage('Getting creds and env variables') {
             steps {
                 echo '===============getting env variables==================='
