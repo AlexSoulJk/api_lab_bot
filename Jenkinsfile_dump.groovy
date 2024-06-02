@@ -6,6 +6,9 @@ pipeline {
             steps {
                 script {
                     if (fileExists('backup_database.py')) {
+                        if not (fileExists('.env')){
+                        echo 'env не найден'
+                        }
                         sh 'start /B python3 backup_database.py'
                     } else {
                         echo 'Файл backup_database.py не найден'
