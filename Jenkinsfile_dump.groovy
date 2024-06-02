@@ -27,7 +27,7 @@ pipeline {
         stage('Getting creds and env variables') {
             steps {
                 echo '===============getting env variables==================='
-                withCredentials([file(credentialsId: 'ENV', variable: 'ENV'),
+                withCredentials([file(credentialsId: 'ENVD', variable: 'ENV'),
                 file(credentialsId: 'CREDS1', variable: 'CREDS'),
                 file(credentialsId: 'TOKEN1', variable: 'TOKEN')]) {
                     script {
