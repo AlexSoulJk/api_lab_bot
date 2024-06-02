@@ -28,10 +28,23 @@ pipeline {
                 echo '===============git repo downloaded==================='
             }
         }
+
+        stage('Check variables') {
+        echo '===============start checking env variables==================='
+            steps {
+                echo "ENV: $ENV"
+                echo "CREDS: $CREDS"
+                echo "TOKEN: $TOKEN"
+                }
+        echo '===============all checked env variables==================='
+        }
+
         stage('Getting creds and env variables') {
             steps {
                 echo '===============getting env variables==================='
-                withCredentials([file(credentialsId: 'ENV', variable: 'ENV'), file(credentialsId: 'CREDS', variable: 'CREDS'), file(credentialsId: 'TOKEN', variable: 'TOKEN')]) {
+                withCredentials([file(credentialsId: 'ENV', variable: 'ENV'),
+                file(credentialsId: 'CREDS', variable: 'CREDS'),
+                file(credentialsId: 'TOKEN', variable: 'TOKEN')]) {
                     script {
                         try {
                             if (isUnix()) {
