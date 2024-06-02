@@ -52,7 +52,6 @@ pipeline {
                                 sh 'cp $CREDS ./api_lab_bot/credentials.json'
                                 sh 'cp $TOKEN ./api_lab_bot/token.json'
                             } else {
-//                                 bat 'powershell Copy-Item %ENV% -Destination ./api_lab_bot/.env'
                                 bat 'powershell Copy-Item %CREDS% -Destination ./api_lab_bot/credentials.json'
                                 bat 'powershell Copy-Item %TOKEN% -Destination ./api_lab_bot/token.json'
                             }
