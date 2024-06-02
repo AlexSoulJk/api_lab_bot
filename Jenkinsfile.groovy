@@ -43,8 +43,8 @@ pipeline {
             steps {
                 echo '===============getting env variables==================='
                 withCredentials([file(credentialsId: 'ENV', variable: 'ENV'),
-                file(credentialsId: 'CREDS', variable: 'CREDS'),
-                file(credentialsId: 'TOKEN', variable: 'TOKEN')]) {
+                file(credentialsId: 'CREDS1', variable: 'CREDS'),
+                file(credentialsId: 'TOKEN1', variable: 'TOKEN')]) {
                     script {
                         try {
                             if (isUnix()) {
