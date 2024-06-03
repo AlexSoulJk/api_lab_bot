@@ -36,7 +36,6 @@ async def main():
     scheduler.add_job(sc.send_messages_interval_at_time, trigger="interval",
                       seconds=60, kwargs={"bot": bot})
     scheduler.start()
-    # Устанавливаем команды для бота
     await bot.set_my_commands(commands)
     try:
         # db.connect()
